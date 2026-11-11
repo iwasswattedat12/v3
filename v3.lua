@@ -1,6 +1,6 @@
 local PainUI = {}
 PainUI.__index = PainUI
-PainUI.Version = "3.0"
+PainUI.Version = "3.2.0"
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -193,6 +193,7 @@ local function EnsureGlobalNotif(guiParent)
             ResetOnSpawn = false,
             ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
             IgnoreGuiInset = true,
+            DisplayOrder = 999,
             Parent = guiParent
         })
     end
@@ -200,15 +201,16 @@ local function EnsureGlobalNotif(guiParent)
     GlobalNotifContainer = CreateInstance("Frame", {
         Name = "NotificationContainer",
         BackgroundTransparency = 1,
-        Size = UDim2.new(0, 270, 1, -20),
-        Position = UDim2.new(1, -280, 0, 10),
+        Size = UDim2.new(0, 300, 1, -30),
+        Position = UDim2.new(1, -315, 1, -15),
+        AnchorPoint = Vector2.new(0, 1),
         Parent = notifGui
     })
 
     CreateInstance("UIListLayout", {
         FillDirection = Enum.FillDirection.Vertical,
         VerticalAlignment = Enum.VerticalAlignment.Bottom,
-        Padding = UDim.new(0, 8),
+        Padding = UDim.new(0, 10),
         SortOrder = Enum.SortOrder.LayoutOrder,
         Parent = GlobalNotifContainer
     })
@@ -218,7 +220,7 @@ end
 
 function PainUI:Notify(configOrTitle, message, duration, notifType)
     local title = "Notification"
-    local dur = 3
+    local dur = 3.5
     local nType = "Info"
 
     if type(configOrTitle) == "table" then
@@ -248,32 +250,54 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
         iconAsset = IconMap.close
     end
 
-    local Notif = CreateInstance("Frame", {
-        Name = "Notif",
-        BackgroundColor3 = Theme.Card,
-        Size = UDim2.new(1, 0, 0, 60),
-        ClipsDescendants = true,
+    local NotifCard = CreateInstance("Frame", {
+        Name = "NotifCard",
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, 0, 0, 0),
+        AutomaticSize = Enum.AutomaticSize.Y,
+        ClipsDescendants = false,
         Parent = container
     })
-    AddCorner(Notif, 8)
-    AddStroke(Notif, typeColor, 1, 0.4)
 
-    CreateInstance("Frame", {
-        Name = "AccentBar",
-        BackgroundColor3 = typeColor,
-        Size = UDim2.new(0, 4, 1, 0),
-        BorderSizePixel = 0,
-        Parent = Notif
+    local Inner = CreateInstance("Frame", {
+        Name = "Inner",
+        BackgroundColor3 = Color3.fromRGB(16, 16, 16),
+        Size = UDim2.new(1, 0, 0, 0),
+        Position = UDim2.new(1, 40, 0, 0),
+        AutomaticSize = Enum.AutomaticSize.Y,
+        ClipsDescendants = true,
+        Parent = NotifCard
     })
+    AddCorner(Inner, 10)
+    AddStroke(Inner, Theme.CardBorder, 1)
+
+    local TopRow = CreateInstance("Frame", {
+        Name = "TopRow",
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, 0, 0, 24),
+        Position = UDim2.new(0, 0, 0, 10),
+        Parent = Inner
+    })
+
+    local IconBox = CreateInstance("Frame", {
+        Name = "IconBox",
+        BackgroundColor3 = Color3.fromRGB(24, 24, 24),
+        Size = UDim2.new(0, 22, 0, 22),
+        Position = UDim2.new(0, 12, 0, 1),
+        Parent = TopRow
+    })
+    AddCorner(IconBox, 6)
+    AddStroke(IconBox, typeColor, 1, 0.5)
 
     CreateInstance("ImageLabel", {
         Name = "Icon",
         Image = iconAsset,
         ImageColor3 = typeColor,
         BackgroundTransparency = 1,
-        Size = UDim2.new(0, 16, 0, 16),
-        Position = UDim2.new(0, 14, 0, 10),
-        Parent = Notif
+        Size = UDim2.new(0, 14, 0, 14),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Parent = IconBox
     })
 
     CreateInstance("TextLabel", {
@@ -284,38 +308,99 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
         TextColor3 = Theme.Text,
         TextXAlignment = Enum.TextXAlignment.Left,
         BackgroundTransparency = 1,
-        Size = UDim2.new(1, -40, 0, 20),
-        Position = UDim2.new(0, 36, 0, 8),
-        Parent = Notif
+        Size = UDim2.new(1, -70, 1, 0),
+        Position = UDim2.new(0, 42, 0, 0),
+        Parent = TopRow
     })
 
-    CreateInstance("TextLabel", {
+    local CloseBtn = CreateInstance("TextButton", {
+        Name = "Close",
+        Text = "",
+        BackgroundTransparency = 1,
+        Size = UDim2.new(0, 20, 0, 20),
+        Position = UDim2.new(1, -10, 0.5, 0),
+        AnchorPoint = Vector2.new(1, 0.5),
+        AutoButtonColor = false,
+        Parent = TopRow
+    })
+
+    local CloseIcon = CreateInstance("ImageLabel", {
+        Name = "Icon",
+        Image = IconMap.close,
+        ImageColor3 = Theme.TextDark,
+        BackgroundTransparency = 1,
+        Size = UDim2.new(0, 12, 0, 12),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Parent = CloseBtn
+    })
+
+    CloseBtn.MouseEnter:Connect(function()
+        Tween(CloseIcon, AnimConfig.Fast, {ImageColor3 = Theme.Text})
+    end)
+    CloseBtn.MouseLeave:Connect(function()
+        Tween(CloseIcon, AnimConfig.Fast, {ImageColor3 = Theme.TextDark})
+    end)
+
+    local MsgLabel = CreateInstance("TextLabel", {
         Name = "Message",
         Text = message,
         Font = Enum.Font.GothamMedium,
         TextSize = 11,
         TextColor3 = Theme.TextDim,
         TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top,
         TextWrapped = true,
         BackgroundTransparency = 1,
-        Size = UDim2.new(1, -24, 0, 24),
-        Position = UDim2.new(0, 14, 0, 28),
-        Parent = Notif
+        Size = UDim2.new(1, -24, 0, 0),
+        Position = UDim2.new(0, 12, 0, 38),
+        AutomaticSize = Enum.AutomaticSize.Y,
+        Parent = Inner
+    })
+    AddPadding(Inner, 0, 12, 0, 0)
+
+    local ProgressTrack = CreateInstance("Frame", {
+        Name = "ProgressTrack",
+        BackgroundColor3 = Color3.fromRGB(24, 24, 24),
+        Size = UDim2.new(1, 0, 0, 2),
+        Position = UDim2.new(0, 0, 1, -2),
+        BorderSizePixel = 0,
+        Parent = Inner
     })
 
-    Notif.Position = UDim2.new(1, 60, 0, 0)
-    Tween(Notif, AnimConfig.Bounce, {Position = UDim2.new(0, 0, 0, 0)})
+    local ProgressFill = CreateInstance("Frame", {
+        Name = "ProgressFill",
+        BackgroundColor3 = typeColor,
+        Size = UDim2.new(1, 0, 1, 0),
+        BorderSizePixel = 0,
+        Parent = ProgressTrack
+    })
+
+    local dismissed = false
+    local function dismiss()
+        if dismissed then return end
+        dismissed = true
+        local t = Tween(Inner, AnimConfig.Fast, {
+            Position = UDim2.new(1, 60, 0, 0),
+            BackgroundTransparency = 1
+        })
+        t.Completed:Connect(function()
+            NotifCard:Destroy()
+        end)
+    end
+
+    CloseBtn.MouseButton1Click:Connect(dismiss)
+
+    Tween(Inner, AnimConfig.Bounce, {
+        Position = UDim2.new(0, 0, 0, 0)
+    })
+
+    Tween(ProgressFill, TweenInfo.new(dur, Enum.EasingStyle.Linear), {
+        Size = UDim2.new(0, 0, 1, 0)
+    })
 
     task.delay(dur, function()
-        if Notif and Notif.Parent then
-            local t = Tween(Notif, AnimConfig.Medium, {
-                Position = UDim2.new(1, 60, 0, 0),
-                BackgroundTransparency = 1
-            })
-            t.Completed:Connect(function()
-                Notif:Destroy()
-            end)
-        end
+        dismiss()
     end)
 end
 
@@ -2299,10 +2384,8 @@ function PainUI:CreateWindow(options)
         end
         Window.Connections = {}
 
-        local t = Tween(MainFrame, AnimConfig.Medium, {
-            Size = UDim2.new(0, windowSize.X.Offset, 0, 0),
-            BackgroundTransparency = 1
-        })
+        local t = Tween(MainScale, AnimConfig.Fast, {Scale = 0})
+        Tween(MainFrame, AnimConfig.Fast, {Rotation = 25, BackgroundTransparency = 1})
         t.Completed:Connect(function()
             ScreenGui:Destroy()
         end)
