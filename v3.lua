@@ -1,6 +1,6 @@
 local PainUI = {}
 PainUI.__index = PainUI
-PainUI.Version = "3.2.0"
+PainUI.Version = "3.0"
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -633,10 +633,16 @@ function PainUI:CreateWindow(options)
                 end
 
                 if item.Row then
+                    local origBg = item.Row.BackgroundColor3
                     task.defer(function()
                         Tween(item.Row, AnimConfig.Fast, {BackgroundTransparency = 0.6, BackgroundColor3 = Theme.AccentDark}).Completed:Connect(function()
                             task.delay(0.4, function()
-                                Tween(item.Row, AnimConfig.Medium, {BackgroundTransparency = 1})
+                                local t = Tween(item.Row, AnimConfig.Medium, {BackgroundTransparency = 1, BackgroundColor3 = origBg})
+                                t.Completed:Connect(function()
+                                    if item.Row then
+                                        item.Row.BackgroundColor3 = origBg
+                                    end
+                                end)
                             end)
                         end)
                     end)
@@ -1394,18 +1400,16 @@ function PainUI:CreateWindow(options)
                     end)
                     table.insert(Window.Connections, kbConn)
 
-                    ToggleBtn.MouseEnter:Connect(function()
-                        Tween(Row, AnimConfig.Fast, {BackgroundTransparency = 0.95})
-                    end)
-                    ToggleBtn.MouseLeave:Connect(function()
-                        Tween(Row, AnimConfig.Fast, {BackgroundTransparency = 1})
-                    end)
-                    ToggleTrack.MouseEnter:Connect(function()
-                        Tween(Row, AnimConfig.Fast, {BackgroundTransparency = 0.95})
-                    end)
-                    ToggleTrack.MouseLeave:Connect(function()
-                        Tween(Row, AnimConfig.Fast, {BackgroundTransparency = 1})
-                    end)
+                    local function onRowHover()
+                        Tween(Row, AnimConfig.Fast, {BackgroundTransparency = 0.95, BackgroundColor3 = Color3.fromRGB(255, 255, 255)})
+                    end
+                    local function onRowUnhover()
+                        Tween(Row, AnimConfig.Fast, {BackgroundTransparency = 1, BackgroundColor3 = Color3.fromRGB(255, 255, 255)})
+                    end
+                    ToggleBtn.MouseEnter:Connect(onRowHover)
+                    ToggleBtn.MouseLeave:Connect(onRowUnhover)
+                    ToggleTrack.MouseEnter:Connect(onRowHover)
+                    ToggleTrack.MouseLeave:Connect(onRowUnhover)
 
                     local toggleObj = {
                         Set = function(_, val)
