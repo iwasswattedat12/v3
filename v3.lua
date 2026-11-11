@@ -63,35 +63,35 @@ local Theme = {
 }
 
 local IconMap = {
-    aimbot = "rbxassetid://6031094678",
-    crosshair = "rbxassetid://6031094678",
-    target = "rbxassetid://6031094678",
-    fov = "rbxassetid://6031094678",
-    visuals = "rbxassetid://6031075931",
-    eye = "rbxassetid://6031075931",
-    chams = "rbxassetid://6031075931",
-    movement = "rbxassetid://6031079143",
-    walk = "rbxassetid://6031079143",
-    player = "rbxassetid://6031075929",
-    players = "rbxassetid://6031075929",
-    users = "rbxassetid://6031075929",
-    team = "rbxassetid://6031075929",
-    scripts = "rbxassetid://6031094687",
-    code = "rbxassetid://6031094687",
-    configs = "rbxassetid://6031075938",
-    folder = "rbxassetid://6031075938",
-    misc = "rbxassetid://6031075942",
-    zap = "rbxassetid://6031075942",
-    settings = "rbxassetid://6031280882",
-    gear = "rbxassetid://6031280882",
-    prediction = "rbxassetid://6031075925",
-    wave = "rbxassetid://6031075925",
-    search = "rbxassetid://6031154877",
-    down = "rbxassetid://6031091004",
-    check = "rbxassetid://6031094667",
-    warning = "rbxassetid://6031075935",
-    close = "rbxassetid://6031094680",
-    info = "rbxassetid://6031075931"
+    aimbot = "rbxassetid://10709791437",
+    crosshair = "rbxassetid://10709791437",
+    target = "rbxassetid://10709791437",
+    fov = "rbxassetid://10709791437",
+    visuals = "rbxassetid://10723346959",
+    eye = "rbxassetid://10723346959",
+    chams = "rbxassetid://10723346959",
+    movement = "rbxassetid://10709790202",
+    walk = "rbxassetid://10709790202",
+    player = "rbxassetid://10747373176",
+    players = "rbxassetid://10747373176",
+    users = "rbxassetid://10747373176",
+    team = "rbxassetid://10747373176",
+    scripts = "rbxassetid://10709810463",
+    code = "rbxassetid://10709810463",
+    configs = "rbxassetid://10723387563",
+    folder = "rbxassetid://10723387563",
+    misc = "rbxassetid://10709810948",
+    zap = "rbxassetid://10709810948",
+    settings = "rbxassetid://10734950309",
+    gear = "rbxassetid://10734950309",
+    prediction = "rbxassetid://10709790202",
+    wave = "rbxassetid://10709790202",
+    search = "rbxassetid://10734883986",
+    down = "rbxassetid://10709790948",
+    check = "rbxassetid://10709790644",
+    warning = "rbxassetid://10709790537",
+    close = "rbxassetid://10709790429",
+    info = "rbxassetid://10723346959"
 }
 
 local function GetIconAsset(icon)
@@ -120,7 +120,7 @@ local AnimConfig = {
     Fast = TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
     Medium = TweenInfo.new(0.32, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
     Slow = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-    Bounce = TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+    Bounce = TweenInfo.new(0.38, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
     Spring = TweenInfo.new(0.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out),
     Smooth = TweenInfo.new(0.22, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
 }
@@ -426,11 +426,12 @@ function PainUI:CreateWindow(options)
     local SearchIcon = CreateInstance("ImageLabel", {
         Name = "Icon",
         Image = IconMap.search,
-        ImageColor3 = Theme.TextDim,
+        ImageColor3 = Color3.fromRGB(255, 255, 255),
         BackgroundTransparency = 1,
         Size = UDim2.new(0, 15, 0, 15),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
+        Active = false,
         Parent = SearchBtn
     })
 
@@ -447,7 +448,7 @@ function PainUI:CreateWindow(options)
             Tween(SearchBox, AnimConfig.Fast, {Size = UDim2.new(0, 0, 0, 30)}).Completed:Connect(function()
                 if not searchOpen then SearchBox.Visible = false end
             end)
-            Tween(SearchIcon, AnimConfig.Fast, {ImageColor3 = Theme.TextDim})
+            Tween(SearchIcon, AnimConfig.Fast, {ImageColor3 = Color3.fromRGB(255, 255, 255)})
             for _, item in ipairs(Window.AllElements) do
                 if item.Row then item.Row.Visible = true end
             end
@@ -465,11 +466,9 @@ function PainUI:CreateWindow(options)
 
     SearchBtn.MouseEnter:Connect(function()
         Tween(SearchBtn, AnimConfig.Fast, {BackgroundColor3 = Theme.SidebarActive})
-        Tween(SearchIcon, AnimConfig.Fast, {ImageColor3 = Theme.Text})
     end)
     SearchBtn.MouseLeave:Connect(function()
         Tween(SearchBtn, AnimConfig.Fast, {BackgroundColor3 = Theme.Card})
-        Tween(SearchIcon, AnimConfig.Fast, {ImageColor3 = searchOpen and Theme.Accent or Theme.TextDim})
     end)
 
     local Sidebar = CreateInstance("Frame", {
@@ -487,7 +486,7 @@ function PainUI:CreateWindow(options)
         Size = UDim2.new(0, 36, 0, 36),
         Position = UDim2.new(0.5, 0, 0, 8),
         AnchorPoint = Vector2.new(0.5, 0),
-        ZIndex = 1,
+        ZIndex = 2,
         Parent = Sidebar
     })
     AddCorner(SidebarIndicator, 18)
@@ -501,7 +500,7 @@ function PainUI:CreateWindow(options)
         Parent = Sidebar
     })
 
-    local SidebarLayout = CreateInstance("UIListLayout", {
+    CreateInstance("UIListLayout", {
         FillDirection = Enum.FillDirection.Vertical,
         HorizontalAlignment = Enum.HorizontalAlignment.Center,
         Padding = UDim.new(0, 6),
@@ -560,7 +559,7 @@ function PainUI:CreateWindow(options)
     AddStroke(BottomDock, Theme.CardBorder, 1)
     AddPadding(BottomDock, 3, 3, 5, 5)
 
-    local BottomDockLayout = CreateInstance("UIListLayout", {
+    CreateInstance("UIListLayout", {
         FillDirection = Enum.FillDirection.Horizontal,
         HorizontalAlignment = Enum.HorizontalAlignment.Center,
         VerticalAlignment = Enum.VerticalAlignment.Center,
@@ -633,16 +632,17 @@ function PainUI:CreateWindow(options)
     end)
     table.insert(Window.Connections, toggleConn)
 
-    local tabIndex = 0
+    local totalTabs = 0
     local sidebarTabs = {}
     local dockTabs = {}
 
     function Window:CreateTab(name, icon)
-        tabIndex = tabIndex + 1
+        totalTabs = totalTabs + 1
+        local myIndex = totalTabs
         local Tab = {}
         Tab.Name = name:lower()
         Tab.Sections = {}
-        Tab.LayoutOrder = tabIndex
+        Tab.LayoutOrder = myIndex
 
         local iconAsset = GetIconAsset(icon or name)
 
@@ -651,7 +651,7 @@ function PainUI:CreateWindow(options)
             Text = "",
             BackgroundTransparency = 1,
             Size = UDim2.new(0, 36, 0, 36),
-            LayoutOrder = tabIndex,
+            LayoutOrder = myIndex,
             ZIndex = 3,
             AutoButtonColor = false,
             Parent = SidebarButtonsHolder
@@ -661,12 +661,13 @@ function PainUI:CreateWindow(options)
         local SidebarIcon = CreateInstance("ImageLabel", {
             Name = "Icon",
             Image = iconAsset,
-            ImageColor3 = Theme.TextDim,
+            ImageColor3 = Color3.fromRGB(255, 255, 255),
             BackgroundTransparency = 1,
             Size = UDim2.new(0, 18, 0, 18),
             Position = UDim2.new(0.5, 0, 0.5, 0),
             AnchorPoint = Vector2.new(0.5, 0.5),
             ZIndex = 4,
+            Active = false,
             Parent = SidebarBtn
         })
 
@@ -731,7 +732,7 @@ function PainUI:CreateWindow(options)
             BackgroundTransparency = 1,
             Size = UDim2.new(0, 28, 0, 28),
             AutomaticSize = Enum.AutomaticSize.None,
-            LayoutOrder = tabIndex,
+            LayoutOrder = myIndex,
             AutoButtonColor = false,
             Text = "",
             Parent = BottomDock
@@ -752,9 +753,10 @@ function PainUI:CreateWindow(options)
         local DockIcon = CreateInstance("ImageLabel", {
             Name = "Icon",
             Image = iconAsset,
-            ImageColor3 = Theme.TextDim,
+            ImageColor3 = Color3.fromRGB(255, 255, 255),
             BackgroundTransparency = 1,
             Size = UDim2.new(0, 15, 0, 15),
+            Active = false,
             LayoutOrder = 1,
             Parent = DockPill
         })
@@ -769,40 +771,41 @@ function PainUI:CreateWindow(options)
             Size = UDim2.new(0, 0, 0, 16),
             AutomaticSize = Enum.AutomaticSize.X,
             Visible = false,
+            Active = false,
             LayoutOrder = 2,
             Parent = DockPill
         })
 
-        table.insert(sidebarTabs, {Btn = SidebarBtn, Icon = SidebarIcon, Tab = Tab, Page = TabPage, Order = tabIndex})
+        table.insert(sidebarTabs, {Btn = SidebarBtn, Icon = SidebarIcon, Tab = Tab, Page = TabPage, Order = myIndex})
         table.insert(dockTabs, {Pill = DockPill, Stroke = DockStroke, Icon = DockIcon, Label = DockLabel, Tab = Tab})
 
         local function selectTab()
             for _, item in ipairs(sidebarTabs) do
-                Tween(item.Icon, AnimConfig.Fast, {ImageColor3 = Theme.TextDim})
                 item.Page.Visible = false
             end
 
-            for _, item in ipairs(dockTabs) do
-                item.Label.Visible = false
-                item.Pill.AutomaticSize = Enum.AutomaticSize.None
-                Tween(item.Pill, AnimConfig.Fast, {Size = UDim2.new(0, 28, 0, 28), BackgroundTransparency = 1})
-                Tween(item.Stroke, AnimConfig.Fast, {Transparency = 1})
-                Tween(item.Icon, AnimConfig.Fast, {ImageColor3 = Theme.TextDim})
-            end
-
-            Tween(SidebarIcon, AnimConfig.Fast, {ImageColor3 = Color3.fromRGB(255, 255, 255)})
             TabPage.Visible = true
 
-            local targetY = 8 + (tabIndex - 1) * (36 + 6)
+            local targetY = (myIndex - 1) * 42
             Tween(SidebarIndicator, AnimConfig.Bounce, {
-                Position = UDim2.new(0.5, 0, 0, targetY)
+                Position = UDim2.new(0.5, 0, 0, 8 + targetY)
             })
 
-            DockLabel.Visible = true
-            DockPill.AutomaticSize = Enum.AutomaticSize.X
-            Tween(DockPill, AnimConfig.Fast, {Size = UDim2.new(0, 0, 0, 28), BackgroundTransparency = 0.85, BackgroundColor3 = Theme.AccentDark})
-            Tween(DockStroke, AnimConfig.Fast, {Transparency = 0.3})
-            Tween(DockIcon, AnimConfig.Fast, {ImageColor3 = Theme.Accent})
+            for _, item in ipairs(dockTabs) do
+                if item.Tab == Tab then
+                    item.Label.Visible = true
+                    item.Pill.AutomaticSize = Enum.AutomaticSize.X
+                    Tween(item.Pill, AnimConfig.Fast, {Size = UDim2.new(0, 0, 0, 28), BackgroundTransparency = 0.85, BackgroundColor3 = Theme.AccentDark})
+                    Tween(item.Stroke, AnimConfig.Fast, {Transparency = 0.3})
+                    Tween(item.Icon, AnimConfig.Fast, {ImageColor3 = Theme.Accent})
+                else
+                    item.Label.Visible = false
+                    item.Pill.AutomaticSize = Enum.AutomaticSize.None
+                    Tween(item.Pill, AnimConfig.Fast, {Size = UDim2.new(0, 28, 0, 28), BackgroundTransparency = 1})
+                    Tween(item.Stroke, AnimConfig.Fast, {Transparency = 1})
+                    Tween(item.Icon, AnimConfig.Fast, {ImageColor3 = Color3.fromRGB(255, 255, 255)})
+                end
+            end
 
             for _, section in ipairs(Tab.Sections) do
                 if section.Frame then
@@ -825,29 +828,7 @@ function PainUI:CreateWindow(options)
         SidebarBtn.MouseButton1Click:Connect(selectTab)
         DockPill.MouseButton1Click:Connect(selectTab)
 
-        SidebarBtn.MouseEnter:Connect(function()
-            if Window.ActiveTab ~= Tab then
-                Tween(SidebarIcon, AnimConfig.Fast, {ImageColor3 = Theme.AccentGlow})
-            end
-        end)
-        SidebarBtn.MouseLeave:Connect(function()
-            if Window.ActiveTab ~= Tab then
-                Tween(SidebarIcon, AnimConfig.Fast, {ImageColor3 = Theme.TextDim})
-            end
-        end)
-
-        DockPill.MouseEnter:Connect(function()
-            if Window.ActiveTab ~= Tab then
-                Tween(DockIcon, AnimConfig.Fast, {ImageColor3 = Theme.Text})
-            end
-        end)
-        DockPill.MouseLeave:Connect(function()
-            if Window.ActiveTab ~= Tab then
-                Tween(DockIcon, AnimConfig.Fast, {ImageColor3 = Theme.TextDim})
-            end
-        end)
-
-        if tabIndex == 1 then
+        if myIndex == 1 then
             task.defer(selectTab)
         end
 
