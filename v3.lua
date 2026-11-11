@@ -62,6 +62,60 @@ local Theme = {
     Info = Color3.fromRGB(52, 152, 219),
 }
 
+local IconMap = {
+    aimbot = "rbxassetid://6031094678",
+    crosshair = "rbxassetid://6031094678",
+    target = "rbxassetid://6031094678",
+    fov = "rbxassetid://6031094678",
+    visuals = "rbxassetid://6031075931",
+    eye = "rbxassetid://6031075931",
+    chams = "rbxassetid://6031075931",
+    movement = "rbxassetid://6031079143",
+    walk = "rbxassetid://6031079143",
+    player = "rbxassetid://6031075929",
+    players = "rbxassetid://6031075929",
+    users = "rbxassetid://6031075929",
+    team = "rbxassetid://6031075929",
+    scripts = "rbxassetid://6031094687",
+    code = "rbxassetid://6031094687",
+    configs = "rbxassetid://6031075938",
+    folder = "rbxassetid://6031075938",
+    misc = "rbxassetid://6031075942",
+    zap = "rbxassetid://6031075942",
+    settings = "rbxassetid://6031280882",
+    gear = "rbxassetid://6031280882",
+    prediction = "rbxassetid://6031075925",
+    wave = "rbxassetid://6031075925",
+    search = "rbxassetid://6031154877",
+    down = "rbxassetid://6031091004",
+    check = "rbxassetid://6031094667",
+    warning = "rbxassetid://6031075935",
+    close = "rbxassetid://6031094680",
+    info = "rbxassetid://6031075931"
+}
+
+local function GetIconAsset(icon)
+    if not icon or icon == "" then return "" end
+    if string.sub(icon, 1, 13) == "rbxassetid://" then
+        return icon
+    end
+    local lower = string.lower(icon)
+    if IconMap[lower] then
+        return IconMap[lower]
+    end
+    if lower == "🎯" then return IconMap.aimbot end
+    if lower == "👁" then return IconMap.visuals end
+    if lower == "🏃" then return IconMap.movement end
+    if lower == "👥" then return IconMap.players end
+    if lower == "</>" then return IconMap.code end
+    if lower == "📁" then return IconMap.folder end
+    if lower == "⚡" then return IconMap.zap end
+    if lower == "⚙" then return IconMap.settings end
+    if lower == "〰" then return IconMap.wave end
+    if lower == "🔍" then return IconMap.search end
+    return ""
+end
+
 local AnimConfig = {
     Fast = TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
     Medium = TweenInfo.new(0.32, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
@@ -192,10 +246,16 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
     local container = EnsureGlobalNotif(getSafeGuiParent())
 
     local typeColor = Theme.Accent
-    if nType == "Success" then typeColor = Theme.Success
-    elseif nType == "Warning" then typeColor = Theme.Warning
-    elseif nType == "Error" then typeColor = Theme.Error
-    elseif nType == "Info" then typeColor = Theme.Info
+    local iconAsset = IconMap.info
+    if nType == "Success" then
+        typeColor = Theme.Success
+        iconAsset = IconMap.check
+    elseif nType == "Warning" then
+        typeColor = Theme.Warning
+        iconAsset = IconMap.warning
+    elseif nType == "Error" then
+        typeColor = Theme.Error
+        iconAsset = IconMap.close
     end
 
     local Notif = CreateInstance("Frame", {
@@ -216,6 +276,16 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
         Parent = Notif
     })
 
+    CreateInstance("ImageLabel", {
+        Name = "Icon",
+        Image = iconAsset,
+        ImageColor3 = typeColor,
+        BackgroundTransparency = 1,
+        Size = UDim2.new(0, 16, 0, 16),
+        Position = UDim2.new(0, 14, 0, 10),
+        Parent = Notif
+    })
+
     CreateInstance("TextLabel", {
         Name = "Title",
         Text = title,
@@ -224,8 +294,8 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
         TextColor3 = Theme.Text,
         TextXAlignment = Enum.TextXAlignment.Left,
         BackgroundTransparency = 1,
-        Size = UDim2.new(1, -24, 0, 20),
-        Position = UDim2.new(0, 14, 0, 8),
+        Size = UDim2.new(1, -40, 0, 20),
+        Position = UDim2.new(0, 36, 0, 8),
         Parent = Notif
     })
 
@@ -320,34 +390,6 @@ function PainUI:CreateWindow(options)
         Parent = MainFrame
     })
 
-    local Logo = CreateInstance("Frame", {
-        Name = "Logo",
-        BackgroundColor3 = Theme.Accent,
-        Size = UDim2.new(0, 24, 0, 28),
-        Position = UDim2.new(0, 18, 0.5, 0),
-        AnchorPoint = Vector2.new(0, 0.5),
-        Parent = TopBar
-    })
-    AddCorner(Logo, 7)
-
-    local Eye1 = CreateInstance("Frame", {
-        BackgroundColor3 = Theme.Background,
-        Size = UDim2.new(0, 4, 0, 4),
-        Position = UDim2.new(0, 5, 0, 7),
-        BorderSizePixel = 0,
-        Parent = Logo
-    })
-    AddCorner(Eye1, 2)
-
-    local Eye2 = CreateInstance("Frame", {
-        BackgroundColor3 = Theme.Background,
-        Size = UDim2.new(0, 4, 0, 4),
-        Position = UDim2.new(1, -9, 0, 7),
-        BorderSizePixel = 0,
-        Parent = Logo
-    })
-    AddCorner(Eye2, 2)
-
     local SearchBox = CreateInstance("TextBox", {
         Name = "SearchBox",
         PlaceholderText = "Search...",
@@ -370,10 +412,7 @@ function PainUI:CreateWindow(options)
 
     local SearchBtn = CreateInstance("TextButton", {
         Name = "Search",
-        Text = "🔍",
-        Font = Enum.Font.GothamMedium,
-        TextSize = 13,
-        TextColor3 = Theme.TextDim,
+        Text = "",
         BackgroundColor3 = Theme.Card,
         Size = UDim2.new(0, 32, 0, 32),
         Position = UDim2.new(1, -16, 0.5, 0),
@@ -384,6 +423,17 @@ function PainUI:CreateWindow(options)
     AddCorner(SearchBtn, 16)
     AddStroke(SearchBtn, Theme.CardBorder, 1)
 
+    local SearchIcon = CreateInstance("ImageLabel", {
+        Name = "Icon",
+        Image = IconMap.search,
+        ImageColor3 = Theme.TextDim,
+        BackgroundTransparency = 1,
+        Size = UDim2.new(0, 15, 0, 15),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Parent = SearchBtn
+    })
+
     local searchOpen = false
     SearchBtn.MouseButton1Click:Connect(function()
         searchOpen = not searchOpen
@@ -391,13 +441,13 @@ function PainUI:CreateWindow(options)
             SearchBox.Visible = true
             Tween(SearchBox, AnimConfig.Fast, {Size = UDim2.new(0, 140, 0, 30)})
             SearchBox:CaptureFocus()
-            Tween(SearchBtn, AnimConfig.Fast, {TextColor3 = Theme.Accent})
+            Tween(SearchIcon, AnimConfig.Fast, {ImageColor3 = Theme.Accent})
         else
             SearchBox.Text = ""
             Tween(SearchBox, AnimConfig.Fast, {Size = UDim2.new(0, 0, 0, 30)}).Completed:Connect(function()
                 if not searchOpen then SearchBox.Visible = false end
             end)
-            Tween(SearchBtn, AnimConfig.Fast, {TextColor3 = Theme.TextDim})
+            Tween(SearchIcon, AnimConfig.Fast, {ImageColor3 = Theme.TextDim})
             for _, item in ipairs(Window.AllElements) do
                 if item.Row then item.Row.Visible = true end
             end
@@ -414,10 +464,12 @@ function PainUI:CreateWindow(options)
     end)
 
     SearchBtn.MouseEnter:Connect(function()
-        Tween(SearchBtn, AnimConfig.Fast, {BackgroundColor3 = Theme.SidebarActive, TextColor3 = Theme.Text})
+        Tween(SearchBtn, AnimConfig.Fast, {BackgroundColor3 = Theme.SidebarActive})
+        Tween(SearchIcon, AnimConfig.Fast, {ImageColor3 = Theme.Text})
     end)
     SearchBtn.MouseLeave:Connect(function()
-        Tween(SearchBtn, AnimConfig.Fast, {BackgroundColor3 = Theme.Card, TextColor3 = searchOpen and Theme.Accent or Theme.TextDim})
+        Tween(SearchBtn, AnimConfig.Fast, {BackgroundColor3 = Theme.Card})
+        Tween(SearchIcon, AnimConfig.Fast, {ImageColor3 = searchOpen and Theme.Accent or Theme.TextDim})
     end)
 
     local Sidebar = CreateInstance("Frame", {
@@ -429,11 +481,23 @@ function PainUI:CreateWindow(options)
         Parent = MainFrame
     })
 
+    local SidebarIndicator = CreateInstance("Frame", {
+        Name = "Indicator",
+        BackgroundColor3 = Theme.Accent,
+        Size = UDim2.new(0, 36, 0, 36),
+        Position = UDim2.new(0.5, 0, 0, 8),
+        AnchorPoint = Vector2.new(0.5, 0),
+        ZIndex = 1,
+        Parent = Sidebar
+    })
+    AddCorner(SidebarIndicator, 18)
+
     local SidebarButtonsHolder = CreateInstance("Frame", {
         Name = "Buttons",
         BackgroundTransparency = 1,
         Size = UDim2.new(1, 0, 1, -56),
-        Position = UDim2.new(0, 0, 0, 0),
+        Position = UDim2.new(0, 0, 0, 8),
+        ZIndex = 3,
         Parent = Sidebar
     })
 
@@ -444,18 +508,6 @@ function PainUI:CreateWindow(options)
         SortOrder = Enum.SortOrder.LayoutOrder,
         Parent = SidebarButtonsHolder
     })
-    AddPadding(SidebarButtonsHolder, 6, 6, 0, 0)
-
-    local SidebarIndicator = CreateInstance("Frame", {
-        Name = "Indicator",
-        BackgroundColor3 = Theme.Accent,
-        Size = UDim2.new(0, 36, 0, 36),
-        Position = UDim2.new(0.5, 0, 0, 6),
-        AnchorPoint = Vector2.new(0.5, 0),
-        ZIndex = 1,
-        Parent = SidebarButtonsHolder
-    })
-    AddCorner(SidebarIndicator, 18)
 
     local AvatarContainer = CreateInstance("Frame", {
         Name = "AvatarContainer",
@@ -463,6 +515,7 @@ function PainUI:CreateWindow(options)
         Size = UDim2.new(0, 34, 0, 34),
         Position = UDim2.new(0.5, 0, 1, -12),
         AnchorPoint = Vector2.new(0.5, 1),
+        ZIndex = 3,
         Parent = Sidebar
     })
 
@@ -591,20 +644,31 @@ function PainUI:CreateWindow(options)
         Tab.Sections = {}
         Tab.LayoutOrder = tabIndex
 
+        local iconAsset = GetIconAsset(icon or name)
+
         local SidebarBtn = CreateInstance("TextButton", {
             Name = "Tab_" .. name,
-            Text = icon or "⚙",
-            Font = Enum.Font.GothamBold,
-            TextSize = 15,
-            TextColor3 = Theme.TextDim,
+            Text = "",
             BackgroundTransparency = 1,
             Size = UDim2.new(0, 36, 0, 36),
             LayoutOrder = tabIndex,
-            ZIndex = 2,
+            ZIndex = 3,
             AutoButtonColor = false,
             Parent = SidebarButtonsHolder
         })
         AddCorner(SidebarBtn, 18)
+
+        local SidebarIcon = CreateInstance("ImageLabel", {
+            Name = "Icon",
+            Image = iconAsset,
+            ImageColor3 = Theme.TextDim,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(0, 18, 0, 18),
+            Position = UDim2.new(0.5, 0, 0.5, 0),
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            ZIndex = 4,
+            Parent = SidebarBtn
+        })
 
         local TabPage = CreateInstance("ScrollingFrame", {
             Name = "Page_" .. name,
@@ -675,7 +739,7 @@ function PainUI:CreateWindow(options)
         AddCorner(DockPill, 14)
         local DockStroke = AddStroke(DockPill, Theme.Accent, 1, 1)
 
-        local DockLayout = CreateInstance("UIListLayout", {
+        CreateInstance("UIListLayout", {
             FillDirection = Enum.FillDirection.Horizontal,
             VerticalAlignment = Enum.VerticalAlignment.Center,
             HorizontalAlignment = Enum.HorizontalAlignment.Center,
@@ -685,14 +749,12 @@ function PainUI:CreateWindow(options)
         })
         AddPadding(DockPill, 0, 0, 7, 7)
 
-        local DockIcon = CreateInstance("TextLabel", {
+        local DockIcon = CreateInstance("ImageLabel", {
             Name = "Icon",
-            Text = icon or "⚙",
-            Font = Enum.Font.GothamBold,
-            TextSize = 13,
-            TextColor3 = Theme.TextDim,
+            Image = iconAsset,
+            ImageColor3 = Theme.TextDim,
             BackgroundTransparency = 1,
-            Size = UDim2.new(0, 16, 0, 16),
+            Size = UDim2.new(0, 15, 0, 15),
             LayoutOrder = 1,
             Parent = DockPill
         })
@@ -711,12 +773,12 @@ function PainUI:CreateWindow(options)
             Parent = DockPill
         })
 
-        table.insert(sidebarTabs, {Btn = SidebarBtn, Tab = Tab, Page = TabPage, Order = tabIndex})
+        table.insert(sidebarTabs, {Btn = SidebarBtn, Icon = SidebarIcon, Tab = Tab, Page = TabPage, Order = tabIndex})
         table.insert(dockTabs, {Pill = DockPill, Stroke = DockStroke, Icon = DockIcon, Label = DockLabel, Tab = Tab})
 
         local function selectTab()
             for _, item in ipairs(sidebarTabs) do
-                Tween(item.Btn, AnimConfig.Fast, {TextColor3 = Theme.TextDim})
+                Tween(item.Icon, AnimConfig.Fast, {ImageColor3 = Theme.TextDim})
                 item.Page.Visible = false
             end
 
@@ -725,13 +787,13 @@ function PainUI:CreateWindow(options)
                 item.Pill.AutomaticSize = Enum.AutomaticSize.None
                 Tween(item.Pill, AnimConfig.Fast, {Size = UDim2.new(0, 28, 0, 28), BackgroundTransparency = 1})
                 Tween(item.Stroke, AnimConfig.Fast, {Transparency = 1})
-                Tween(item.Icon, AnimConfig.Fast, {TextColor3 = Theme.TextDim})
+                Tween(item.Icon, AnimConfig.Fast, {ImageColor3 = Theme.TextDim})
             end
 
-            Tween(SidebarBtn, AnimConfig.Fast, {TextColor3 = Color3.fromRGB(255, 255, 255)})
+            Tween(SidebarIcon, AnimConfig.Fast, {ImageColor3 = Color3.fromRGB(255, 255, 255)})
             TabPage.Visible = true
 
-            local targetY = 6 + (tabIndex - 1) * (36 + 6)
+            local targetY = 8 + (tabIndex - 1) * (36 + 6)
             Tween(SidebarIndicator, AnimConfig.Bounce, {
                 Position = UDim2.new(0.5, 0, 0, targetY)
             })
@@ -740,7 +802,7 @@ function PainUI:CreateWindow(options)
             DockPill.AutomaticSize = Enum.AutomaticSize.X
             Tween(DockPill, AnimConfig.Fast, {Size = UDim2.new(0, 0, 0, 28), BackgroundTransparency = 0.85, BackgroundColor3 = Theme.AccentDark})
             Tween(DockStroke, AnimConfig.Fast, {Transparency = 0.3})
-            Tween(DockIcon, AnimConfig.Fast, {TextColor3 = Theme.Accent})
+            Tween(DockIcon, AnimConfig.Fast, {ImageColor3 = Theme.Accent})
 
             for _, section in ipairs(Tab.Sections) do
                 if section.Frame then
@@ -765,23 +827,23 @@ function PainUI:CreateWindow(options)
 
         SidebarBtn.MouseEnter:Connect(function()
             if Window.ActiveTab ~= Tab then
-                Tween(SidebarBtn, AnimConfig.Fast, {TextColor3 = Theme.AccentGlow})
+                Tween(SidebarIcon, AnimConfig.Fast, {ImageColor3 = Theme.AccentGlow})
             end
         end)
         SidebarBtn.MouseLeave:Connect(function()
             if Window.ActiveTab ~= Tab then
-                Tween(SidebarBtn, AnimConfig.Fast, {TextColor3 = Theme.TextDim})
+                Tween(SidebarIcon, AnimConfig.Fast, {ImageColor3 = Theme.TextDim})
             end
         end)
 
         DockPill.MouseEnter:Connect(function()
             if Window.ActiveTab ~= Tab then
-                Tween(DockIcon, AnimConfig.Fast, {TextColor3 = Theme.Text})
+                Tween(DockIcon, AnimConfig.Fast, {ImageColor3 = Theme.Text})
             end
         end)
         DockPill.MouseLeave:Connect(function()
             if Window.ActiveTab ~= Tab then
-                Tween(DockIcon, AnimConfig.Fast, {TextColor3 = Theme.TextDim})
+                Tween(DockIcon, AnimConfig.Fast, {ImageColor3 = Theme.TextDim})
             end
         end)
 
@@ -856,18 +918,19 @@ function PainUI:CreateWindow(options)
                 Parent = Header
             })
 
-            CreateInstance("TextLabel", {
-                Name = "Icon",
-                Text = sectionIcon or "⚙",
-                Font = Enum.Font.GothamBold,
-                TextSize = 13,
-                TextColor3 = Theme.Accent,
-                BackgroundTransparency = 1,
-                Size = UDim2.new(0, 20, 0, 20),
-                Position = UDim2.new(1, -26, 0.5, 0),
-                AnchorPoint = Vector2.new(0, 0.5),
-                Parent = Header
-            })
+            local secIconAsset = GetIconAsset(sectionIcon or name)
+            if secIconAsset ~= "" then
+                CreateInstance("ImageLabel", {
+                    Name = "Icon",
+                    Image = secIconAsset,
+                    ImageColor3 = Theme.Accent,
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(0, 16, 0, 16),
+                    Position = UDim2.new(1, -26, 0.5, 0),
+                    AnchorPoint = Vector2.new(0, 0.5),
+                    Parent = Header
+                })
+            end
 
             local ElementsContainer = CreateInstance("Frame", {
                 Name = "Elements",
@@ -1215,20 +1278,19 @@ function PainUI:CreateWindow(options)
                     TextColor3 = Theme.Text,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(1, -20, 1, 0),
+                    Size = UDim2.new(1, -22, 1, 0),
                     Position = UDim2.new(0, 8, 0, 0),
                     Parent = DropBtn
                 })
 
-                local DropArrow = CreateInstance("TextLabel", {
+                local DropArrow = CreateInstance("ImageLabel", {
                     Name = "Arrow",
-                    Text = "▾",
-                    Font = Enum.Font.GothamBold,
-                    TextSize = 10,
-                    TextColor3 = Theme.TextDim,
+                    Image = IconMap.down,
+                    ImageColor3 = Theme.TextDim,
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(0, 14, 1, 0),
-                    Position = UDim2.new(1, -16, 0, 0),
+                    Size = UDim2.new(0, 12, 0, 12),
+                    Position = UDim2.new(1, -16, 0.5, 0),
+                    AnchorPoint = Vector2.new(0, 0.5),
                     Parent = DropBtn
                 })
 
