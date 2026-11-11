@@ -1,6 +1,6 @@
 local PainUI = {}
 PainUI.__index = PainUI
-PainUI.Version = "v3"
+PainUI.Version = "3.2.0"
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -86,7 +86,7 @@ local IconMap = {
     gear = "rbxassetid://10734950309",
     prediction = "rbxassetid://10709790202",
     wave = "rbxassetid://10709790202",
-    search = "rbxassetid://10734883986",
+    search = "rbxassetid://10734943674",
     down = "rbxassetid://10709790948",
     check = "rbxassetid://10709790644",
     warning = "rbxassetid://10709790537",
@@ -366,12 +366,23 @@ function PainUI:CreateWindow(options)
     AddCorner(MainFrame, 12)
     AddStroke(MainFrame, Theme.CardBorder, 1, 0.5)
 
-    MainFrame.Size = UDim2.new(0, windowSize.X.Offset, 0, 0)
-    MainFrame.BackgroundTransparency = 1
+    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    MainFrame.Size = windowSize
+    MainFrame.BackgroundTransparency = 0
+
+    local MainScale = CreateInstance("UIScale", {
+        Scale = 0,
+        Parent = MainFrame
+    })
+    MainFrame.Rotation = -15
+
     task.defer(function()
+        Tween(MainScale, AnimConfig.Bounce, {
+            Scale = 1
+        })
         Tween(MainFrame, AnimConfig.Bounce, {
-            Size = windowSize,
-            BackgroundTransparency = 0
+            Rotation = 0
         })
     end)
 
@@ -437,38 +448,47 @@ function PainUI:CreateWindow(options)
         })
     end
 
+    local SearchContainer = CreateInstance("Frame", {
+        Name = "SearchContainer",
+        BackgroundColor3 = Theme.Card,
+        Size = UDim2.new(0, 32, 0, 32),
+        Position = UDim2.new(1, -16, 0.5, 0),
+        AnchorPoint = Vector2.new(1, 0.5),
+        ClipsDescendants = true,
+        ZIndex = 11,
+        Parent = TopBar
+    })
+    AddCorner(SearchContainer, 16)
+    AddStroke(SearchContainer, Theme.CardBorder, 1)
+
     local SearchBox = CreateInstance("TextBox", {
         Name = "SearchBox",
-        PlaceholderText = "Search features...",
+        PlaceholderText = "Search...",
         PlaceholderColor3 = Theme.TextDark,
         Text = "",
         Font = Enum.Font.GothamMedium,
         TextSize = 11,
         TextColor3 = Theme.Text,
-        BackgroundColor3 = Theme.Card,
-        Size = UDim2.new(0, 0, 0, 30),
-        Position = UDim2.new(1, -56, 0.5, 0),
-        AnchorPoint = Vector2.new(1, 0.5),
-        ClipsDescendants = true,
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, -34, 1, 0),
+        Position = UDim2.new(0, 10, 0, 0),
+        ClearTextOnFocus = false,
         Visible = false,
-        Parent = TopBar
+        ZIndex = 12,
+        Parent = SearchContainer
     })
-    AddCorner(SearchBox, 8)
-    AddStroke(SearchBox, Theme.CardBorder, 1)
-    AddPadding(SearchBox, 0, 0, 10, 10)
 
     local SearchBtn = CreateInstance("TextButton", {
-        Name = "Search",
+        Name = "SearchBtn",
         Text = "",
-        BackgroundColor3 = Theme.Card,
+        BackgroundTransparency = 1,
         Size = UDim2.new(0, 32, 0, 32),
-        Position = UDim2.new(1, -16, 0.5, 0),
+        Position = UDim2.new(1, 0, 0.5, 0),
         AnchorPoint = Vector2.new(1, 0.5),
         AutoButtonColor = false,
-        Parent = TopBar
+        ZIndex = 12,
+        Parent = SearchContainer
     })
-    AddCorner(SearchBtn, 8)
-    AddStroke(SearchBtn, Theme.CardBorder, 1)
 
     local SearchIcon = CreateInstance("ImageLabel", {
         Name = "Icon",
@@ -479,6 +499,7 @@ function PainUI:CreateWindow(options)
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         Active = false,
+        ZIndex = 13,
         Parent = SearchBtn
     })
 
@@ -633,12 +654,13 @@ function PainUI:CreateWindow(options)
         searchOpen = not searchOpen
         if searchOpen then
             SearchBox.Visible = true
-            Tween(SearchBox, AnimConfig.Fast, {Size = UDim2.new(0, 160, 0, 30)})
-            SearchBox:CaptureFocus()
+            Tween(SearchContainer, AnimConfig.Fast, {Size = UDim2.new(0, 200, 0, 32)})
             Tween(SearchIcon, AnimConfig.Fast, {ImageColor3 = Theme.Accent})
+            SearchBox:CaptureFocus()
         else
             SearchBox.Text = ""
-            Tween(SearchBox, AnimConfig.Fast, {Size = UDim2.new(0, 0, 0, 30)}).Completed:Connect(function()
+            local t = Tween(SearchContainer, AnimConfig.Fast, {Size = UDim2.new(0, 32, 0, 32)})
+            t.Completed:Connect(function()
                 if not searchOpen then SearchBox.Visible = false end
             end)
             Tween(SearchIcon, AnimConfig.Fast, {ImageColor3 = Color3.fromRGB(255, 255, 255)})
@@ -650,10 +672,10 @@ function PainUI:CreateWindow(options)
     SearchBox:GetPropertyChangedSignal("Text"):Connect(updateSearchResults)
 
     SearchBtn.MouseEnter:Connect(function()
-        Tween(SearchBtn, AnimConfig.Fast, {BackgroundColor3 = Theme.SidebarActive})
+        Tween(SearchContainer, AnimConfig.Fast, {BackgroundColor3 = Theme.SidebarActive})
     end)
     SearchBtn.MouseLeave:Connect(function()
-        Tween(SearchBtn, AnimConfig.Fast, {BackgroundColor3 = Theme.Card})
+        Tween(SearchContainer, AnimConfig.Fast, {BackgroundColor3 = Theme.Card})
     end)
 
     local Sidebar = CreateInstance("Frame", {
@@ -805,35 +827,48 @@ function PainUI:CreateWindow(options)
     end)
     table.insert(Window.Connections, dragConn3)
 
+    local isAnimating = false
     function Window:Toggle(state)
+        if isAnimating then return end
         if state ~= nil then
             Window.Visible = state
         else
             Window.Visible = not Window.Visible
         end
 
+        isAnimating = true
         if Window.Visible then
             MainFrame.Visible = true
-            Tween(MainFrame, AnimConfig.Bounce, {
-                Size = windowSize,
-                BackgroundTransparency = 0
-            })
+            MainScale.Scale = 0
+            MainFrame.Rotation = -15
+            MainFrame.BackgroundTransparency = 0.5
+
+            local t = Tween(MainScale, AnimConfig.Bounce, {Scale = 1})
+            Tween(MainFrame, AnimConfig.Bounce, {Rotation = 0, BackgroundTransparency = 0})
+            t.Completed:Connect(function()
+                isAnimating = false
+            end)
         else
-            local t = Tween(MainFrame, AnimConfig.Medium, {
-                Size = UDim2.new(0, windowSize.X.Offset, 0, 0),
-                BackgroundTransparency = 1
-            })
+            local t = Tween(MainScale, AnimConfig.Fast, {Scale = 0})
+            Tween(MainFrame, AnimConfig.Fast, {Rotation = 25, BackgroundTransparency = 1})
             t.Completed:Connect(function()
                 if not Window.Visible then
                     MainFrame.Visible = false
+                    MainFrame.Rotation = 0
                 end
+                isAnimating = false
             end)
         end
     end
 
+    function Window:SetToggleKey(newKey)
+        toggleKey = newKey
+        Window.ToggleKey = newKey
+    end
+
     local toggleConn = UserInputService.InputBegan:Connect(function(input, processed)
-        if processed then return end
-        if input.KeyCode == toggleKey then
+        if UserInputService:GetFocusedTextBox() then return end
+        if toggleKey and input.KeyCode == toggleKey then
             Window:Toggle()
         end
     end)
@@ -1340,7 +1375,8 @@ function PainUI:CreateWindow(options)
                                     DotsBtn.Size = UDim2.new(0, 34, 1, 0)
                                 end
                             end
-                        elseif not listening and not processed and boundKey and input.UserInputType == Enum.UserInputType.Keyboard then
+                        elseif not listening and boundKey and input.UserInputType == Enum.UserInputType.Keyboard then
+                            if UserInputService:GetFocusedTextBox() then return end
                             if input.KeyCode == boundKey then
                                 toggled = not toggled
                                 applyState(true)
@@ -1803,7 +1839,9 @@ function PainUI:CreateWindow(options)
                                 KeyBtn.Text = currentKey.Name
                             end
                             Tween(KeyBtn, AnimConfig.Fast, {BackgroundColor3 = Theme.InputBg})
-                        elseif not listening and not processed and input.UserInputType == Enum.UserInputType.Keyboard then
+                            callback(currentKey)
+                        elseif not listening and input.UserInputType == Enum.UserInputType.Keyboard then
+                            if UserInputService:GetFocusedTextBox() then return end
                             if currentKey ~= Enum.KeyCode.Unknown and input.KeyCode == currentKey then
                                 callback(currentKey)
                             end
