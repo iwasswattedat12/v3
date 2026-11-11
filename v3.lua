@@ -245,27 +245,16 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
         end
     end
 
-    if titleText == "Pain UI v3" or titleText == "Notification" or titleText == messageText then
-        titleText = ""
+    local displayText = ""
+    if messageText ~= "" then
+        displayText = messageText
+    elseif titleText ~= "" then
+        displayText = titleText
+    else
+        displayText = "Notification"
     end
-
-    local hasTitle = (titleText ~= "")
-    local displayText = (messageText ~= "" and messageText) or titleText
 
     local container = EnsureGlobalNotif(getSafeGuiParent())
-
-    local typeColor = Theme.Accent
-    local iconAsset = IconMap.info
-    if nType == "Success" then
-        typeColor = Theme.Success
-        iconAsset = IconMap.check
-    elseif nType == "Warning" then
-        typeColor = Theme.Warning
-        iconAsset = IconMap.warning
-    elseif nType == "Error" then
-        typeColor = Theme.Error
-        iconAsset = IconMap.close
-    end
 
     local NotifCard = CreateInstance("Frame", {
         Name = "NotifCard",
@@ -276,7 +265,7 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
         Parent = container
     })
 
-    local minH = hasTitle and 74 or 60
+    local minH = 64
     local Inner = CreateInstance("Frame", {
         Name = "Inner",
         BackgroundColor3 = Color3.fromRGB(16, 16, 16),
@@ -291,7 +280,7 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
 
     CreateInstance("UISizeConstraint", {
         MinSize = Vector2.new(280, minH),
-        MaxSize = Vector2.new(380, 450),
+        MaxSize = Vector2.new(400, 500),
         Parent = Inner
     })
 
@@ -302,74 +291,21 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
         AutomaticSize = Enum.AutomaticSize.Y,
         Parent = Inner
     })
-    AddPadding(ContentFrame, 12, 18, 14, 32)
-
-    local ContentLayout = CreateInstance("UIListLayout", {
-        FillDirection = Enum.FillDirection.Vertical,
-        Padding = UDim.new(0, 6),
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Parent = ContentFrame
-    })
-
-    if hasTitle then
-        local TopRow = CreateInstance("Frame", {
-            Name = "TopRow",
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 22),
-            LayoutOrder = 1,
-            Parent = ContentFrame
-        })
-
-        local IconBox = CreateInstance("Frame", {
-            Name = "IconBox",
-            BackgroundColor3 = Color3.fromRGB(24, 24, 24),
-            Size = UDim2.new(0, 20, 0, 20),
-            Position = UDim2.new(0, 0, 0.5, 0),
-            AnchorPoint = Vector2.new(0, 0.5),
-            Parent = TopRow
-        })
-        AddCorner(IconBox, 5)
-        AddStroke(IconBox, typeColor, 1, 0.5)
-
-        CreateInstance("ImageLabel", {
-            Name = "Icon",
-            Image = iconAsset,
-            ImageColor3 = typeColor,
-            BackgroundTransparency = 1,
-            Size = UDim2.new(0, 13, 0, 13),
-            Position = UDim2.new(0.5, 0, 0.5, 0),
-            AnchorPoint = Vector2.new(0.5, 0.5),
-            Parent = IconBox
-        })
-
-        CreateInstance("TextLabel", {
-            Name = "Title",
-            Text = titleText,
-            Font = Enum.Font.GothamBold,
-            TextSize = 13,
-            TextColor3 = Theme.Text,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, -28, 1, 0),
-            Position = UDim2.new(0, 28, 0, 0),
-            Parent = TopRow
-        })
-    end
+    AddPadding(ContentFrame, 16, 22, 16, 36)
 
     local MsgLabel = CreateInstance("TextLabel", {
         Name = "Message",
         Text = displayText,
         Font = Enum.Font.GothamMedium,
-        TextSize = hasTitle and 12 or 13,
-        TextColor3 = hasTitle and Color3.fromRGB(200, 200, 200) or Theme.Text,
+        TextSize = 13,
+        TextColor3 = Theme.Text,
         TextXAlignment = Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Top,
+        TextYAlignment = Enum.TextYAlignment.Center,
         TextWrapped = true,
         TextScaled = enableTextScaled,
         BackgroundTransparency = 1,
         Size = UDim2.new(1, 0, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y,
-        LayoutOrder = 2,
         Parent = ContentFrame
     })
 
