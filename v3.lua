@@ -201,16 +201,17 @@ local function EnsureGlobalNotif(guiParent)
     GlobalNotifContainer = CreateInstance("Frame", {
         Name = "NotificationContainer",
         BackgroundTransparency = 1,
-        Size = UDim2.new(0, 300, 1, -30),
-        Position = UDim2.new(1, -315, 1, -15),
-        AnchorPoint = Vector2.new(0, 1),
+        Size = UDim2.new(0, 320, 1, -40),
+        Position = UDim2.new(1, -20, 1, -20),
+        AnchorPoint = Vector2.new(1, 1),
         Parent = notifGui
     })
 
     CreateInstance("UIListLayout", {
         FillDirection = Enum.FillDirection.Vertical,
         VerticalAlignment = Enum.VerticalAlignment.Bottom,
-        Padding = UDim.new(0, 10),
+        HorizontalAlignment = Enum.HorizontalAlignment.Right,
+        Padding = UDim.new(0, 8),
         SortOrder = Enum.SortOrder.LayoutOrder,
         Parent = GlobalNotifContainer
     })
@@ -219,36 +220,30 @@ local function EnsureGlobalNotif(guiParent)
 end
 
 function PainUI:Notify(configOrTitle, message, duration, notifType)
-    local title = "Notification"
     local dur = 3.5
-    local nType = "Info"
+    local displayText = ""
+    local enableTextScaled = false
 
     if type(configOrTitle) == "table" then
-        title = configOrTitle.Title or title
-        message = configOrTitle.Message or configOrTitle.Content or ""
+        displayText = configOrTitle.Text or configOrTitle.Message or configOrTitle.Content or configOrTitle.Title or ""
         dur = configOrTitle.Duration or dur
-        nType = configOrTitle.Type or nType
+        enableTextScaled = configOrTitle.TextScaled or false
     else
-        title = configOrTitle or title
-        message = message or ""
+        if message and message ~= "" then
+            if configOrTitle == "Pain UI v3" or configOrTitle == "Notification" then
+                displayText = message
+            elseif configOrTitle and configOrTitle ~= "" and configOrTitle ~= message then
+                displayText = configOrTitle .. ": " .. message
+            else
+                displayText = message
+            end
+        else
+            displayText = configOrTitle or "Notification"
+        end
         dur = duration or dur
-        nType = notifType or nType
     end
 
     local container = EnsureGlobalNotif(getSafeGuiParent())
-
-    local typeColor = Theme.Accent
-    local iconAsset = IconMap.info
-    if nType == "Success" then
-        typeColor = Theme.Success
-        iconAsset = IconMap.check
-    elseif nType == "Warning" then
-        typeColor = Theme.Warning
-        iconAsset = IconMap.warning
-    elseif nType == "Error" then
-        typeColor = Theme.Error
-        iconAsset = IconMap.close
-    end
 
     local NotifCard = CreateInstance("Frame", {
         Name = "NotifCard",
@@ -263,7 +258,7 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
         Name = "Inner",
         BackgroundColor3 = Color3.fromRGB(16, 16, 16),
         Size = UDim2.new(1, 0, 0, 0),
-        Position = UDim2.new(1, 40, 0, 0),
+        Position = UDim2.new(1, 60, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y,
         ClipsDescendants = true,
         Parent = NotifCard
@@ -271,46 +266,35 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
     AddCorner(Inner, 10)
     AddStroke(Inner, Theme.CardBorder, 1)
 
-    local TopRow = CreateInstance("Frame", {
-        Name = "TopRow",
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 0, 24),
-        Position = UDim2.new(0, 0, 0, 10),
+    CreateInstance("UISizeConstraint", {
+        MinSize = Vector2.new(220, 42),
+        MaxSize = Vector2.new(340, 500),
         Parent = Inner
     })
 
-    local IconBox = CreateInstance("Frame", {
-        Name = "IconBox",
-        BackgroundColor3 = Color3.fromRGB(24, 24, 24),
-        Size = UDim2.new(0, 22, 0, 22),
-        Position = UDim2.new(0, 12, 0, 1),
-        Parent = TopRow
-    })
-    AddCorner(IconBox, 6)
-    AddStroke(IconBox, typeColor, 1, 0.5)
-
-    CreateInstance("ImageLabel", {
-        Name = "Icon",
-        Image = iconAsset,
-        ImageColor3 = typeColor,
+    local TextContainer = CreateInstance("Frame", {
+        Name = "TextContainer",
         BackgroundTransparency = 1,
-        Size = UDim2.new(0, 14, 0, 14),
-        Position = UDim2.new(0.5, 0, 0.5, 0),
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        Parent = IconBox
+        Size = UDim2.new(1, 0, 0, 0),
+        AutomaticSize = Enum.AutomaticSize.Y,
+        Parent = Inner
     })
+    AddPadding(TextContainer, 12, 14, 14, 32)
 
-    CreateInstance("TextLabel", {
-        Name = "Title",
-        Text = title,
-        Font = Enum.Font.GothamBold,
+    local NotifLabel = CreateInstance("TextLabel", {
+        Name = "Message",
+        Text = displayText,
+        Font = Enum.Font.GothamMedium,
         TextSize = 13,
         TextColor3 = Theme.Text,
         TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Center,
+        TextWrapped = true,
+        TextScaled = enableTextScaled,
         BackgroundTransparency = 1,
-        Size = UDim2.new(1, -70, 1, 0),
-        Position = UDim2.new(0, 42, 0, 0),
-        Parent = TopRow
+        Size = UDim2.new(1, 0, 0, 0),
+        AutomaticSize = Enum.AutomaticSize.Y,
+        Parent = TextContainer
     })
 
     local CloseBtn = CreateInstance("TextButton", {
@@ -318,10 +302,10 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
         Text = "",
         BackgroundTransparency = 1,
         Size = UDim2.new(0, 20, 0, 20),
-        Position = UDim2.new(1, -10, 0.5, 0),
+        Position = UDim2.new(1, -8, 0.5, 0),
         AnchorPoint = Vector2.new(1, 0.5),
         AutoButtonColor = false,
-        Parent = TopRow
+        Parent = Inner
     })
 
     local CloseIcon = CreateInstance("ImageLabel", {
@@ -329,7 +313,7 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
         Image = IconMap.close,
         ImageColor3 = Theme.TextDark,
         BackgroundTransparency = 1,
-        Size = UDim2.new(0, 12, 0, 12),
+        Size = UDim2.new(0, 11, 0, 11),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         Parent = CloseBtn
@@ -342,23 +326,6 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
         Tween(CloseIcon, AnimConfig.Fast, {ImageColor3 = Theme.TextDark})
     end)
 
-    local MsgLabel = CreateInstance("TextLabel", {
-        Name = "Message",
-        Text = message,
-        Font = Enum.Font.GothamMedium,
-        TextSize = 11,
-        TextColor3 = Theme.TextDim,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Top,
-        TextWrapped = true,
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, -24, 0, 0),
-        Position = UDim2.new(0, 12, 0, 38),
-        AutomaticSize = Enum.AutomaticSize.Y,
-        Parent = Inner
-    })
-    AddPadding(Inner, 0, 12, 0, 0)
-
     local ProgressTrack = CreateInstance("Frame", {
         Name = "ProgressTrack",
         BackgroundColor3 = Color3.fromRGB(24, 24, 24),
@@ -370,7 +337,7 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
 
     local ProgressFill = CreateInstance("Frame", {
         Name = "ProgressFill",
-        BackgroundColor3 = typeColor,
+        BackgroundColor3 = Theme.Accent,
         Size = UDim2.new(1, 0, 1, 0),
         BorderSizePixel = 0,
         Parent = ProgressTrack
@@ -385,7 +352,10 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
             BackgroundTransparency = 1
         })
         t.Completed:Connect(function()
-            NotifCard:Destroy()
+            pcall(function() NotifCard:Destroy() end)
+        end)
+        task.delay(0.25, function()
+            pcall(function() NotifCard:Destroy() end)
         end)
     end
 
@@ -2376,23 +2346,57 @@ function PainUI:CreateWindow(options)
         PainUI:Notify(titleOrConfig, message, duration, nType)
     end
 
+    local isDestroying = false
     function Window:Destroy()
-        for _, conn in ipairs(Window.Connections) do
-            if conn and conn.Disconnect then
-                pcall(function() conn:Disconnect() end)
-            end
-        end
-        Window.Connections = {}
+        if Window.Destroyed or isDestroying then return end
+        isDestroying = true
+        Window.Visible = false
+        isAnimating = true
 
-        local t = Tween(MainScale, AnimConfig.Fast, {Scale = 0})
-        Tween(MainFrame, AnimConfig.Fast, {Rotation = 25, BackgroundTransparency = 1})
-        t.Completed:Connect(function()
-            ScreenGui:Destroy()
-        end)
+        local function cleanup()
+            for _, conn in ipairs(Window.Connections) do
+                if conn and conn.Disconnect then
+                    pcall(function() conn:Disconnect() end)
+                end
+            end
+            Window.Connections = {}
+            pcall(function() ScreenGui:Destroy() end)
+            Window.Destroyed = true
+            isDestroying = false
+            isAnimating = false
+        end
+
+        if MainFrame and MainFrame.Visible and MainScale and MainScale.Scale > 0.01 then
+            if SearchDropdown then
+                SearchDropdown.Visible = false
+            end
+
+            local t = Tween(MainScale, AnimConfig.Fast, {Scale = 0})
+            Tween(MainFrame, AnimConfig.Fast, {Rotation = 25, BackgroundTransparency = 1})
+            t.Completed:Connect(cleanup)
+            task.delay(0.25, cleanup)
+        else
+            cleanup()
+        end
     end
+
+    Window.Unload = Window.Destroy
 
     return Window
 end
+
+function PainUI:Unload()
+    local guiParent = getSafeGuiParent()
+    local existingGui = guiParent:FindFirstChild("PainUI")
+    if existingGui then
+        pcall(function() existingGui:Destroy() end)
+    end
+    local notifGui = guiParent:FindFirstChild("PainUI_Notifications")
+    if notifGui then
+        pcall(function() notifGui:Destroy() end)
+    end
+end
+PainUI.Destroy = PainUI.Unload
 
 pcall(function()
     if getgenv then
