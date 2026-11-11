@@ -221,29 +221,51 @@ end
 
 function PainUI:Notify(configOrTitle, message, duration, notifType)
     local dur = 3.5
-    local displayText = ""
+    local titleText = ""
+    local messageText = ""
+    local nType = "Info"
     local enableTextScaled = false
 
     if type(configOrTitle) == "table" then
-        displayText = configOrTitle.Text or configOrTitle.Message or configOrTitle.Content or configOrTitle.Title or ""
+        titleText = configOrTitle.Title or ""
+        messageText = configOrTitle.Message or configOrTitle.Content or configOrTitle.Text or ""
         dur = configOrTitle.Duration or dur
+        nType = configOrTitle.Type or nType
         enableTextScaled = configOrTitle.TextScaled or false
     else
         if message and message ~= "" then
-            if configOrTitle == "Pain UI v3" or configOrTitle == "Notification" then
-                displayText = message
-            elseif configOrTitle and configOrTitle ~= "" and configOrTitle ~= message then
-                displayText = configOrTitle .. ": " .. message
-            else
-                displayText = message
-            end
+            titleText = configOrTitle or ""
+            messageText = message
+            dur = duration or dur
+            nType = notifType or nType
         else
-            displayText = configOrTitle or "Notification"
+            messageText = configOrTitle or "Notification"
+            dur = duration or dur
+            nType = notifType or nType
         end
-        dur = duration or dur
     end
 
+    if titleText == "Pain UI v3" or titleText == "Notification" or titleText == messageText then
+        titleText = ""
+    end
+
+    local hasTitle = (titleText ~= "")
+    local displayText = (messageText ~= "" and messageText) or titleText
+
     local container = EnsureGlobalNotif(getSafeGuiParent())
+
+    local typeColor = Theme.Accent
+    local iconAsset = IconMap.info
+    if nType == "Success" then
+        typeColor = Theme.Success
+        iconAsset = IconMap.check
+    elseif nType == "Warning" then
+        typeColor = Theme.Warning
+        iconAsset = IconMap.warning
+    elseif nType == "Error" then
+        typeColor = Theme.Error
+        iconAsset = IconMap.close
+    end
 
     local NotifCard = CreateInstance("Frame", {
         Name = "NotifCard",
@@ -254,10 +276,11 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
         Parent = container
     })
 
+    local minH = hasTitle and 74 or 60
     local Inner = CreateInstance("Frame", {
         Name = "Inner",
         BackgroundColor3 = Color3.fromRGB(16, 16, 16),
-        Size = UDim2.new(1, 0, 0, 0),
+        Size = UDim2.new(1, 0, 0, minH),
         Position = UDim2.new(1, 60, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y,
         ClipsDescendants = true,
@@ -267,34 +290,87 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
     AddStroke(Inner, Theme.CardBorder, 1)
 
     CreateInstance("UISizeConstraint", {
-        MinSize = Vector2.new(220, 42),
-        MaxSize = Vector2.new(340, 500),
+        MinSize = Vector2.new(280, minH),
+        MaxSize = Vector2.new(380, 450),
         Parent = Inner
     })
 
-    local TextContainer = CreateInstance("Frame", {
-        Name = "TextContainer",
+    local ContentFrame = CreateInstance("Frame", {
+        Name = "ContentFrame",
         BackgroundTransparency = 1,
         Size = UDim2.new(1, 0, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y,
         Parent = Inner
     })
-    AddPadding(TextContainer, 12, 14, 14, 32)
+    AddPadding(ContentFrame, 12, 18, 14, 32)
 
-    local NotifLabel = CreateInstance("TextLabel", {
+    local ContentLayout = CreateInstance("UIListLayout", {
+        FillDirection = Enum.FillDirection.Vertical,
+        Padding = UDim.new(0, 6),
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Parent = ContentFrame
+    })
+
+    if hasTitle then
+        local TopRow = CreateInstance("Frame", {
+            Name = "TopRow",
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, 0, 0, 22),
+            LayoutOrder = 1,
+            Parent = ContentFrame
+        })
+
+        local IconBox = CreateInstance("Frame", {
+            Name = "IconBox",
+            BackgroundColor3 = Color3.fromRGB(24, 24, 24),
+            Size = UDim2.new(0, 20, 0, 20),
+            Position = UDim2.new(0, 0, 0.5, 0),
+            AnchorPoint = Vector2.new(0, 0.5),
+            Parent = TopRow
+        })
+        AddCorner(IconBox, 5)
+        AddStroke(IconBox, typeColor, 1, 0.5)
+
+        CreateInstance("ImageLabel", {
+            Name = "Icon",
+            Image = iconAsset,
+            ImageColor3 = typeColor,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(0, 13, 0, 13),
+            Position = UDim2.new(0.5, 0, 0.5, 0),
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            Parent = IconBox
+        })
+
+        CreateInstance("TextLabel", {
+            Name = "Title",
+            Text = titleText,
+            Font = Enum.Font.GothamBold,
+            TextSize = 13,
+            TextColor3 = Theme.Text,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, -28, 1, 0),
+            Position = UDim2.new(0, 28, 0, 0),
+            Parent = TopRow
+        })
+    end
+
+    local MsgLabel = CreateInstance("TextLabel", {
         Name = "Message",
         Text = displayText,
         Font = Enum.Font.GothamMedium,
-        TextSize = 13,
-        TextColor3 = Theme.Text,
+        TextSize = hasTitle and 12 or 13,
+        TextColor3 = hasTitle and Color3.fromRGB(200, 200, 200) or Theme.Text,
         TextXAlignment = Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Center,
+        TextYAlignment = Enum.TextYAlignment.Top,
         TextWrapped = true,
         TextScaled = enableTextScaled,
         BackgroundTransparency = 1,
         Size = UDim2.new(1, 0, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y,
-        Parent = TextContainer
+        LayoutOrder = 2,
+        Parent = ContentFrame
     })
 
     local CloseBtn = CreateInstance("TextButton", {
@@ -302,8 +378,8 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
         Text = "",
         BackgroundTransparency = 1,
         Size = UDim2.new(0, 20, 0, 20),
-        Position = UDim2.new(1, -8, 0.5, 0),
-        AnchorPoint = Vector2.new(1, 0.5),
+        Position = UDim2.new(1, -8, 0, 10),
+        AnchorPoint = Vector2.new(1, 0),
         AutoButtonColor = false,
         Parent = Inner
     })
@@ -329,8 +405,8 @@ function PainUI:Notify(configOrTitle, message, duration, notifType)
     local ProgressTrack = CreateInstance("Frame", {
         Name = "ProgressTrack",
         BackgroundColor3 = Color3.fromRGB(24, 24, 24),
-        Size = UDim2.new(1, 0, 0, 2),
-        Position = UDim2.new(0, 0, 1, -2),
+        Size = UDim2.new(1, 0, 0, 3),
+        Position = UDim2.new(0, 0, 1, -3),
         BorderSizePixel = 0,
         Parent = Inner
     })
@@ -395,6 +471,7 @@ function PainUI:CreateWindow(options)
     Window.Connections = {}
     Window.AllElements = {}
     Window.SearchIndex = {}
+    Window.DestroyCallbacks = {}
 
     local existingGui = guiParent:FindFirstChild("PainUI")
     if existingGui then
@@ -1467,6 +1544,7 @@ function PainUI:CreateWindow(options)
                     ToggleTrack.MouseLeave:Connect(onRowUnhover)
 
                     local toggleObj = {
+                        Type = "Toggle",
                         Set = function(_, val)
                             toggled = val
                             applyState(true)
@@ -2346,12 +2424,34 @@ function PainUI:CreateWindow(options)
         PainUI:Notify(titleOrConfig, message, duration, nType)
     end
 
+    function Window:OnDestroy(callback)
+        if type(callback) == "function" then
+            table.insert(Window.DestroyCallbacks, callback)
+        end
+    end
+
     local isDestroying = false
     function Window:Destroy()
         if Window.Destroyed or isDestroying then return end
         isDestroying = true
         Window.Visible = false
         isAnimating = true
+
+        -- 1. Turn off every active toggle to shut down modules
+        for _, elem in ipairs(Window.AllElements) do
+            if elem and elem.Type == "Toggle" and elem.Get and elem.Set then
+                pcall(function()
+                    if elem:Get() == true then
+                        elem:Set(false)
+                    end
+                end)
+            end
+        end
+
+        -- 2. Trigger registered OnDestroy hooks
+        for _, cb in ipairs(Window.DestroyCallbacks) do
+            pcall(cb)
+        end
 
         local function cleanup()
             for _, conn in ipairs(Window.Connections) do
