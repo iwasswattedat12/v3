@@ -1,6 +1,6 @@
 local PainUI = {}
 PainUI.__index = PainUI
-PainUI.Version = "3.2.0"
+PainUI.Version = "v3"
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -95,25 +95,15 @@ local IconMap = {
 }
 
 local function GetIconAsset(icon)
-    if not icon or icon == "" then return "" end
-    if string.sub(icon, 1, 13) == "rbxassetid://" then
+    if not icon or icon == '' then return '' end
+    if string.sub(icon, 1, 13) == 'rbxassetid://' then
         return icon
     end
     local lower = string.lower(icon)
     if IconMap[lower] then
         return IconMap[lower]
     end
-    if lower == "🎯" then return IconMap.aimbot end
-    if lower == "👁" then return IconMap.visuals end
-    if lower == "🏃" then return IconMap.movement end
-    if lower == "👥" then return IconMap.players end
-    if lower == "</>" then return IconMap.code end
-    if lower == "📁" then return IconMap.folder end
-    if lower == "⚡" then return IconMap.zap end
-    if lower == "⚙" then return IconMap.settings end
-    if lower == "〰" then return IconMap.wave end
-    if lower == "🔍" then return IconMap.search end
-    return ""
+    return ''
 end
 
 local AnimConfig = {
@@ -337,6 +327,8 @@ function PainUI:CreateWindow(options)
         config = options
     end
 
+    local titleText = config.Title or "pain v3"
+    local subTitleText = config.SubTitle or ""
     local toggleKey = config.ToggleKey or Enum.KeyCode.RightControl
     local windowSize = config.Size or UDim2.new(0, 780, 0, 520)
     local guiParent = config.Parent or getSafeGuiParent()
@@ -347,6 +339,7 @@ function PainUI:CreateWindow(options)
     Window.Visible = true
     Window.Connections = {}
     Window.AllElements = {}
+    Window.SearchIndex = {}
 
     local existingGui = guiParent:FindFirstChild("PainUI")
     if existingGui then
@@ -367,7 +360,7 @@ function PainUI:CreateWindow(options)
         Size = windowSize,
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
-        ClipsDescendants = true,
+        ClipsDescendants = false,
         Parent = ScreenGui
     })
     AddCorner(MainFrame, 12)
@@ -389,10 +382,64 @@ function PainUI:CreateWindow(options)
         BorderSizePixel = 0,
         Parent = MainFrame
     })
+    AddCorner(TopBar, 12)
+
+    CreateInstance("Frame", {
+        Name = "TopBarFix",
+        BackgroundColor3 = Theme.Background,
+        Size = UDim2.new(1, 0, 0, 12),
+        Position = UDim2.new(0, 0, 1, -12),
+        BorderSizePixel = 0,
+        Parent = TopBar
+    })
+
+    local TitleContainer = CreateInstance("Frame", {
+        Name = "TitleContainer",
+        BackgroundTransparency = 1,
+        Size = UDim2.new(0, 320, 1, 0),
+        Position = UDim2.new(0, 18, 0, 0),
+        Parent = TopBar
+    })
+
+    CreateInstance("UIListLayout", {
+        FillDirection = Enum.FillDirection.Horizontal,
+        VerticalAlignment = Enum.VerticalAlignment.Center,
+        Padding = UDim.new(0, 8),
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Parent = TitleContainer
+    })
+
+    CreateInstance("TextLabel", {
+        Name = "Title",
+        Text = titleText,
+        Font = Enum.Font.GothamBold,
+        TextSize = 15,
+        TextColor3 = Theme.Text,
+        BackgroundTransparency = 1,
+        Size = UDim2.new(0, 0, 1, 0),
+        AutomaticSize = Enum.AutomaticSize.X,
+        LayoutOrder = 1,
+        Parent = TitleContainer
+    })
+
+    if subTitleText ~= "" then
+        CreateInstance("TextLabel", {
+            Name = "SubTitle",
+            Text = subTitleText,
+            Font = Enum.Font.GothamMedium,
+            TextSize = 11,
+            TextColor3 = Theme.Accent,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(0, 0, 1, 0),
+            AutomaticSize = Enum.AutomaticSize.X,
+            LayoutOrder = 2,
+            Parent = TitleContainer
+        })
+    end
 
     local SearchBox = CreateInstance("TextBox", {
         Name = "SearchBox",
-        PlaceholderText = "Search...",
+        PlaceholderText = "Search features...",
         PlaceholderColor3 = Theme.TextDark,
         Text = "",
         Font = Enum.Font.GothamMedium,
@@ -406,7 +453,7 @@ function PainUI:CreateWindow(options)
         Visible = false,
         Parent = TopBar
     })
-    AddCorner(SearchBox, 15)
+    AddCorner(SearchBox, 8)
     AddStroke(SearchBox, Theme.CardBorder, 1)
     AddPadding(SearchBox, 0, 0, 10, 10)
 
@@ -420,7 +467,7 @@ function PainUI:CreateWindow(options)
         AutoButtonColor = false,
         Parent = TopBar
     })
-    AddCorner(SearchBtn, 16)
+    AddCorner(SearchBtn, 8)
     AddStroke(SearchBtn, Theme.CardBorder, 1)
 
     local SearchIcon = CreateInstance("ImageLabel", {
@@ -435,12 +482,158 @@ function PainUI:CreateWindow(options)
         Parent = SearchBtn
     })
 
+    local SearchDropdown = CreateInstance("ScrollingFrame", {
+        Name = "SearchDropdown",
+        BackgroundColor3 = Theme.Card,
+        Size = UDim2.new(0, 240, 0, 0),
+        Position = UDim2.new(1, -16, 0, 46),
+        AnchorPoint = Vector2.new(1, 0),
+        ScrollBarThickness = 3,
+        ScrollBarImageColor3 = Theme.Accent,
+        ScrollBarImageTransparency = 0.5,
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        ClipsDescendants = true,
+        Visible = false,
+        ZIndex = 50,
+        Parent = TopBar
+    })
+    AddCorner(SearchDropdown, 8)
+    AddStroke(SearchDropdown, Theme.CardBorder, 1)
+
+    local SearchDropLayout = CreateInstance("UIListLayout", {
+        FillDirection = Enum.FillDirection.Vertical,
+        Padding = UDim.new(0, 2),
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Parent = SearchDropdown
+    })
+    AddPadding(SearchDropdown, 6, 6, 6, 6)
+
+    local function updateSearchResults()
+        local query = SearchBox.Text:lower()
+        for _, child in ipairs(SearchDropdown:GetChildren()) do
+            if child:IsA("TextButton") or child:IsA("TextLabel") then
+                child:Destroy()
+            end
+        end
+
+        if query == "" then
+            SearchDropdown.Visible = false
+            Tween(SearchDropdown, AnimConfig.Fast, {Size = UDim2.new(0, 240, 0, 0)})
+            return
+        end
+
+        local matches = {}
+        for _, item in ipairs(Window.SearchIndex) do
+            if string.find(item.Name:lower(), query) then
+                table.insert(matches, item)
+            end
+        end
+
+        if #matches == 0 then
+            SearchDropdown.Visible = true
+            local EmptyLabel = CreateInstance("TextLabel", {
+                Name = "Empty",
+                Text = "No results found",
+                Font = Enum.Font.GothamMedium,
+                TextSize = 11,
+                TextColor3 = Theme.TextDark,
+                BackgroundTransparency = 1,
+                Size = UDim2.new(1, 0, 0, 28),
+                ZIndex = 51,
+                Parent = SearchDropdown
+            })
+            Tween(SearchDropdown, AnimConfig.Fast, {Size = UDim2.new(0, 240, 0, 40)})
+            return
+        end
+
+        SearchDropdown.Visible = true
+        local totalH = math.min(#matches * 32 + 12, 190)
+        Tween(SearchDropdown, AnimConfig.Fast, {Size = UDim2.new(0, 240, 0, totalH)})
+
+        for i, item in ipairs(matches) do
+            local ItemBtn = CreateInstance("TextButton", {
+                Name = "Result_" .. i,
+                BackgroundColor3 = Theme.InputBg,
+                BackgroundTransparency = 1,
+                Size = UDim2.new(1, 0, 0, 26),
+                AutoButtonColor = false,
+                Text = "",
+                ZIndex = 51,
+                LayoutOrder = i,
+                Parent = SearchDropdown
+            })
+            AddCorner(ItemBtn, 6)
+
+            local NameLabel = CreateInstance("TextLabel", {
+                Name = "Name",
+                Text = item.Name,
+                Font = Enum.Font.GothamMedium,
+                TextSize = 11,
+                TextColor3 = Theme.Text,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                BackgroundTransparency = 1,
+                Size = UDim2.new(1, -70, 1, 0),
+                Position = UDim2.new(0, 8, 0, 0),
+                Active = false,
+                ZIndex = 52,
+                Parent = ItemBtn
+            })
+
+            local PathLabel = CreateInstance("TextLabel", {
+                Name = "Path",
+                Text = (item.Page and item.Page.Name) or (item.Tab and item.Tab.Name) or "",
+                Font = Enum.Font.GothamBold,
+                TextSize = 9,
+                TextColor3 = Theme.Accent,
+                TextXAlignment = Enum.TextXAlignment.Right,
+                BackgroundTransparency = 1,
+                Size = UDim2.new(0, 60, 1, 0),
+                Position = UDim2.new(1, -8, 0, 0),
+                AnchorPoint = Vector2.new(1, 0),
+                Active = false,
+                ZIndex = 52,
+                Parent = ItemBtn
+            })
+
+            ItemBtn.MouseEnter:Connect(function()
+                Tween(ItemBtn, AnimConfig.Fast, {BackgroundTransparency = 0.5, BackgroundColor3 = Theme.SidebarActive})
+            end)
+            ItemBtn.MouseLeave:Connect(function()
+                Tween(ItemBtn, AnimConfig.Fast, {BackgroundTransparency = 1})
+            end)
+
+            ItemBtn.MouseButton1Click:Connect(function()
+                if item.Tab and item.Tab.Select then
+                    item.Tab.Select()
+                end
+                if item.Page and item.Page.Select then
+                    item.Page.Select()
+                end
+
+                if item.Row then
+                    task.defer(function()
+                        Tween(item.Row, AnimConfig.Fast, {BackgroundTransparency = 0.6, BackgroundColor3 = Theme.AccentDark}).Completed:Connect(function()
+                            task.delay(0.4, function()
+                                Tween(item.Row, AnimConfig.Medium, {BackgroundTransparency = 1})
+                            end)
+                        end)
+                    end)
+                end
+
+                SearchBox.Text = ""
+                SearchDropdown.Visible = false
+                Tween(SearchDropdown, AnimConfig.Fast, {Size = UDim2.new(0, 240, 0, 0)})
+            end)
+        end
+    end
+
     local searchOpen = false
     SearchBtn.MouseButton1Click:Connect(function()
         searchOpen = not searchOpen
         if searchOpen then
             SearchBox.Visible = true
-            Tween(SearchBox, AnimConfig.Fast, {Size = UDim2.new(0, 140, 0, 30)})
+            Tween(SearchBox, AnimConfig.Fast, {Size = UDim2.new(0, 160, 0, 30)})
             SearchBox:CaptureFocus()
             Tween(SearchIcon, AnimConfig.Fast, {ImageColor3 = Theme.Accent})
         else
@@ -449,20 +642,12 @@ function PainUI:CreateWindow(options)
                 if not searchOpen then SearchBox.Visible = false end
             end)
             Tween(SearchIcon, AnimConfig.Fast, {ImageColor3 = Color3.fromRGB(255, 255, 255)})
-            for _, item in ipairs(Window.AllElements) do
-                if item.Row then item.Row.Visible = true end
-            end
+            SearchDropdown.Visible = false
+            Tween(SearchDropdown, AnimConfig.Fast, {Size = UDim2.new(0, 240, 0, 0)})
         end
     end)
 
-    SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
-        local q = SearchBox.Text:lower()
-        for _, item in ipairs(Window.AllElements) do
-            if item.Row and item.Name then
-                item.Row.Visible = (q == "" or string.find(item.Name:lower(), q) ~= nil)
-            end
-        end
-    end)
+    SearchBox:GetPropertyChangedSignal("Text"):Connect(updateSearchResults)
 
     SearchBtn.MouseEnter:Connect(function()
         Tween(SearchBtn, AnimConfig.Fast, {BackgroundColor3 = Theme.SidebarActive})
@@ -540,7 +725,7 @@ function PainUI:CreateWindow(options)
     local ContentArea = CreateInstance("Frame", {
         Name = "ContentArea",
         BackgroundTransparency = 1,
-        Size = UDim2.new(1, -52, 1, -96),
+        Size = UDim2.new(1, -52, 1, -88),
         Position = UDim2.new(0, 52, 0, 48),
         ClipsDescendants = true,
         Parent = MainFrame
@@ -550,7 +735,7 @@ function PainUI:CreateWindow(options)
         Name = "BottomDock",
         BackgroundColor3 = Theme.BottomDock,
         Size = UDim2.new(0, 0, 0, 34),
-        Position = UDim2.new(0.5, 26, 1, -12),
+        Position = UDim2.new(0.5, 26, 1, -10),
         AnchorPoint = Vector2.new(0.5, 1),
         AutomaticSize = Enum.AutomaticSize.X,
         Parent = MainFrame
@@ -721,6 +906,7 @@ function PainUI:CreateWindow(options)
             refreshDock()
         end
 
+        Tab.Select = selectTab
         SidebarBtn.MouseButton1Click:Connect(selectTab)
         table.insert(sidebarTabs, {Btn = SidebarBtn, Icon = SidebarIcon, Tab = Tab, Order = myTabIndex})
 
@@ -730,6 +916,7 @@ function PainUI:CreateWindow(options)
             Page.Name = pageName:lower()
             Page.Sections = {}
             Page.Order = pageIndex
+            Page.Tab = Tab
 
             local pIconAsset = GetIconAsset(pageIcon or pageName)
 
@@ -746,7 +933,7 @@ function PainUI:CreateWindow(options)
                 ClipsDescendants = true,
                 Parent = ContentArea
             })
-            AddPadding(PageFrame, 6, 12, 12, 12)
+            AddPadding(PageFrame, 6, 8, 10, 10)
 
             local ColumnsContainer = CreateInstance("Frame", {
                 Name = "Columns",
@@ -767,7 +954,7 @@ function PainUI:CreateWindow(options)
 
             CreateInstance("UIListLayout", {
                 FillDirection = Enum.FillDirection.Vertical,
-                Padding = UDim.new(0, 8),
+                Padding = UDim.new(0, 6),
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 Parent = LeftColumn
             })
@@ -783,7 +970,7 @@ function PainUI:CreateWindow(options)
 
             CreateInstance("UIListLayout", {
                 FillDirection = Enum.FillDirection.Vertical,
-                Padding = UDim.new(0, 8),
+                Padding = UDim.new(0, 6),
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 Parent = RightColumn
             })
@@ -860,7 +1047,7 @@ function PainUI:CreateWindow(options)
                 for _, sec in ipairs(Page.Sections) do
                     if sec.Frame then
                         sec.Frame.BackgroundTransparency = 1
-                        sec.Frame.Position = sec.Frame.Position + UDim2.new(0, 0, 0, 12)
+                        sec.Frame.Position = sec.Frame.Position + UDim2.new(0, 0, 0, 10)
                         task.delay(sec.AnimDelay or 0, function()
                             if sec.Frame then
                                 Tween(sec.Frame, AnimConfig.Medium, {
@@ -905,12 +1092,12 @@ function PainUI:CreateWindow(options)
 
                 Section.Frame = Card
                 Section.OrigPos = Card.Position
-                Section.AnimDelay = sectionIndex * 0.04
+                Section.AnimDelay = sectionIndex * 0.03
 
                 local Header = CreateInstance("Frame", {
                     Name = "Header",
                     BackgroundColor3 = Theme.CardHeader,
-                    Size = UDim2.new(1, 0, 0, 32),
+                    Size = UDim2.new(1, 0, 0, 26),
                     BorderSizePixel = 0,
                     LayoutOrder = 1,
                     Parent = Card
@@ -920,8 +1107,8 @@ function PainUI:CreateWindow(options)
                 CreateInstance("Frame", {
                     Name = "HeaderFix",
                     BackgroundColor3 = Theme.CardHeader,
-                    Size = UDim2.new(1, 0, 0, 10),
-                    Position = UDim2.new(0, 0, 1, -10),
+                    Size = UDim2.new(1, 0, 0, 8),
+                    Position = UDim2.new(0, 0, 1, -8),
                     BorderSizePixel = 0,
                     Parent = Header
                 })
@@ -940,12 +1127,12 @@ function PainUI:CreateWindow(options)
                     Name = "Label",
                     Text = name:lower(),
                     Font = Enum.Font.GothamBold,
-                    TextSize = 13,
+                    TextSize = 12,
                     TextColor3 = Theme.Text,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     BackgroundTransparency = 1,
                     Size = UDim2.new(1, -40, 1, 0),
-                    Position = UDim2.new(0, 14, 0, 0),
+                    Position = UDim2.new(0, 12, 0, 0),
                     Parent = Header
                 })
 
@@ -956,8 +1143,8 @@ function PainUI:CreateWindow(options)
                         Image = secIconAsset,
                         ImageColor3 = Theme.Accent,
                         BackgroundTransparency = 1,
-                        Size = UDim2.new(0, 16, 0, 16),
-                        Position = UDim2.new(1, -26, 0.5, 0),
+                        Size = UDim2.new(0, 15, 0, 15),
+                        Position = UDim2.new(1, -24, 0.5, 0),
                         AnchorPoint = Vector2.new(0, 0.5),
                         Parent = Header
                     })
@@ -980,7 +1167,7 @@ function PainUI:CreateWindow(options)
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Parent = ElementsContainer
                 })
-                AddPadding(ElementsContainer, 3, 6, 0, 0)
+                AddPadding(ElementsContainer, 2, 6, 0, 0)
 
                 table.insert(Page.Sections, Section)
 
@@ -999,21 +1186,22 @@ function PainUI:CreateWindow(options)
                     local Row = CreateInstance("Frame", {
                         Name = "Toggle_" .. labelText,
                         BackgroundTransparency = 1,
-                        Size = UDim2.new(1, 0, 0, 33),
+                        Size = UDim2.new(1, 0, 0, 26),
                         LayoutOrder = elementIndex,
                         Parent = ElementsContainer
                     })
+                    AddCorner(Row, 6)
 
                     local Label = CreateInstance("TextLabel", {
                         Name = "Label",
                         Text = labelText,
                         Font = Enum.Font.GothamMedium,
-                        TextSize = 12,
+                        TextSize = 11,
                         TextColor3 = toggled and Theme.Text or Theme.TextDim,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         BackgroundTransparency = 1,
                         Size = UDim2.new(1, -84, 1, 0),
-                        Position = UDim2.new(0, 14, 0, 0),
+                        Position = UDim2.new(0, 12, 0, 0),
                         Parent = Row
                     })
 
@@ -1021,13 +1209,13 @@ function PainUI:CreateWindow(options)
                     if hasDots then
                         DotsBtn = CreateInstance("TextButton", {
                             Name = "Dots",
-                            Text = boundKey and ("[" .. boundKey.Name .. "]") or "•••",
+                            Text = boundKey and ("[" .. boundKey.Name .. "]") or "...",
                             Font = Enum.Font.GothamBold,
                             TextSize = boundKey and 10 or 9,
                             TextColor3 = boundKey and Theme.AccentGlow or Theme.Accent,
                             BackgroundTransparency = 1,
                             Size = UDim2.new(0, boundKey and 34 or 18, 1, 0),
-                            Position = UDim2.new(1, -56, 0, 0),
+                            Position = UDim2.new(1, -54, 0, 0),
                             AnchorPoint = Vector2.new(1, 0),
                             AutoButtonColor = false,
                             ZIndex = 6,
@@ -1045,7 +1233,7 @@ function PainUI:CreateWindow(options)
                         Name = "Track",
                         BackgroundColor3 = toggled and Theme.Accent or Theme.ToggleOff,
                         Size = UDim2.new(0, 36, 0, 18),
-                        Position = UDim2.new(1, -14, 0.5, 0),
+                        Position = UDim2.new(1, -12, 0.5, 0),
                         AnchorPoint = Vector2.new(1, 0.5),
                         Parent = Row
                     })
@@ -1117,7 +1305,7 @@ function PainUI:CreateWindow(options)
                             if input.KeyCode == Enum.KeyCode.Escape then
                                 boundKey = nil
                                 if DotsBtn then
-                                    DotsBtn.Text = "•••"
+                                    DotsBtn.Text = "..."
                                     DotsBtn.TextColor3 = Theme.Accent
                                     DotsBtn.Size = UDim2.new(0, 18, 1, 0)
                                 end
@@ -1160,7 +1348,7 @@ function PainUI:CreateWindow(options)
                                     DotsBtn.Text = "[" .. k.Name .. "]"
                                     DotsBtn.Size = UDim2.new(0, 34, 1, 0)
                                 else
-                                    DotsBtn.Text = "•••"
+                                    DotsBtn.Text = "..."
                                     DotsBtn.Size = UDim2.new(0, 18, 1, 0)
                                 end
                             end
@@ -1171,6 +1359,7 @@ function PainUI:CreateWindow(options)
 
                     table.insert(Section.Elements, toggleObj)
                     table.insert(Window.AllElements, toggleObj)
+                    table.insert(Window.SearchIndex, {Name = labelText, Tab = Tab, Page = Page, Section = Section, Row = Row})
                     return toggleObj
                 end
 
@@ -1183,21 +1372,22 @@ function PainUI:CreateWindow(options)
                     local Row = CreateInstance("Frame", {
                         Name = "Slider_" .. labelText,
                         BackgroundTransparency = 1,
-                        Size = UDim2.new(1, 0, 0, 33),
+                        Size = UDim2.new(1, 0, 0, 26),
                         LayoutOrder = elementIndex,
                         Parent = ElementsContainer
                     })
+                    AddCorner(Row, 6)
 
                     local Label = CreateInstance("TextLabel", {
                         Name = "Label",
                         Text = labelText,
                         Font = Enum.Font.GothamMedium,
-                        TextSize = 12,
+                        TextSize = 11,
                         TextColor3 = Theme.TextDim,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         BackgroundTransparency = 1,
-                        Size = UDim2.new(0, 110, 1, 0),
-                        Position = UDim2.new(0, 14, 0, 0),
+                        Size = UDim2.new(0, 105, 1, 0),
+                        Position = UDim2.new(0, 12, 0, 0),
                         Parent = Row
                     })
 
@@ -1210,7 +1400,7 @@ function PainUI:CreateWindow(options)
                         TextXAlignment = Enum.TextXAlignment.Right,
                         BackgroundTransparency = 1,
                         Size = UDim2.new(0, 50, 1, 0),
-                        Position = UDim2.new(1, -14, 0, 0),
+                        Position = UDim2.new(1, -12, 0, 0),
                         AnchorPoint = Vector2.new(1, 0),
                         Parent = Row
                     })
@@ -1218,8 +1408,8 @@ function PainUI:CreateWindow(options)
                     local SliderTrack = CreateInstance("Frame", {
                         Name = "Track",
                         BackgroundColor3 = Theme.SliderTrack,
-                        Size = UDim2.new(1, -195, 0, 4),
-                        Position = UDim2.new(0, 126, 0.5, 0),
+                        Size = UDim2.new(1, -185, 0, 4),
+                        Position = UDim2.new(0, 120, 0.5, 0),
                         AnchorPoint = Vector2.new(0, 0.5),
                         Parent = Row
                     })
@@ -1314,6 +1504,7 @@ function PainUI:CreateWindow(options)
 
                     table.insert(Section.Elements, sliderObj)
                     table.insert(Window.AllElements, sliderObj)
+                    table.insert(Window.SearchIndex, {Name = labelText, Tab = Tab, Page = Page, Section = Section, Row = Row})
                     return sliderObj
                 end
 
@@ -1327,22 +1518,23 @@ function PainUI:CreateWindow(options)
                     local Row = CreateInstance("Frame", {
                         Name = "Dropdown_" .. labelText,
                         BackgroundTransparency = 1,
-                        Size = UDim2.new(1, 0, 0, 33),
+                        Size = UDim2.new(1, 0, 0, 26),
                         LayoutOrder = elementIndex,
                         ClipsDescendants = false,
                         Parent = ElementsContainer
                     })
+                    AddCorner(Row, 6)
 
                     local Label = CreateInstance("TextLabel", {
                         Name = "Label",
                         Text = labelText,
                         Font = Enum.Font.GothamMedium,
-                        TextSize = 12,
+                        TextSize = 11,
                         TextColor3 = Theme.TextDim,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         BackgroundTransparency = 1,
-                        Size = UDim2.new(0.45, 0, 0, 33),
-                        Position = UDim2.new(0, 14, 0, 0),
+                        Size = UDim2.new(0.45, 0, 0, 30),
+                        Position = UDim2.new(0, 12, 0, 0),
                         Parent = Row
                     })
 
@@ -1350,7 +1542,7 @@ function PainUI:CreateWindow(options)
                         Name = "DropBtn",
                         BackgroundColor3 = Theme.InputBg,
                         Size = UDim2.new(0, 95, 0, 22),
-                        Position = UDim2.new(1, -14, 0, 5),
+                        Position = UDim2.new(1, -12, 0, 4),
                         AnchorPoint = Vector2.new(1, 0),
                         AutoButtonColor = false,
                         Text = "",
@@ -1387,7 +1579,7 @@ function PainUI:CreateWindow(options)
                         Name = "Options",
                         BackgroundColor3 = Theme.DropdownBg,
                         Size = UDim2.new(0, 95, 0, 0),
-                        Position = UDim2.new(1, -14, 0, 30),
+                        Position = UDim2.new(1, -12, 0, 28),
                         AnchorPoint = Vector2.new(1, 0),
                         ClipsDescendants = true,
                         Visible = false,
@@ -1457,7 +1649,7 @@ function PainUI:CreateWindow(options)
 
                                 opened = false
                                 local t = Tween(DropOptions, AnimConfig.Fast, {Size = UDim2.new(0, 95, 0, 0)})
-                                Tween(Row, AnimConfig.Fast, {Size = UDim2.new(1, 0, 0, 33)})
+                                Tween(Row, AnimConfig.Fast, {Size = UDim2.new(1, 0, 0, 26)})
                                 t.Completed:Connect(function()
                                     if not opened then DropOptions.Visible = false end
                                 end)
@@ -1477,12 +1669,12 @@ function PainUI:CreateWindow(options)
                         if opened then
                             DropOptions.Visible = true
                             local totalHeight = #options * 22 + 6
-                            Tween(Row, AnimConfig.Fast, {Size = UDim2.new(1, 0, 0, 33 + totalHeight)})
+                            Tween(Row, AnimConfig.Fast, {Size = UDim2.new(1, 0, 0, 26 + totalHeight)})
                             Tween(DropOptions, AnimConfig.Medium, {Size = UDim2.new(0, 95, 0, totalHeight)})
                             Tween(DropArrow, AnimConfig.Fast, {Rotation = 180})
                         else
                             local t = Tween(DropOptions, AnimConfig.Fast, {Size = UDim2.new(0, 95, 0, 0)})
-                            Tween(Row, AnimConfig.Fast, {Size = UDim2.new(1, 0, 0, 33)})
+                            Tween(Row, AnimConfig.Fast, {Size = UDim2.new(1, 0, 0, 26)})
                             t.Completed:Connect(function()
                                 if not opened then DropOptions.Visible = false end
                             end)
@@ -1523,6 +1715,7 @@ function PainUI:CreateWindow(options)
 
                     table.insert(Section.Elements, dropObj)
                     table.insert(Window.AllElements, dropObj)
+                    table.insert(Window.SearchIndex, {Name = labelText, Tab = Tab, Page = Page, Section = Section, Row = Row})
                     return dropObj
                 end
 
@@ -1535,21 +1728,22 @@ function PainUI:CreateWindow(options)
                     local Row = CreateInstance("Frame", {
                         Name = "Keybind_" .. labelText,
                         BackgroundTransparency = 1,
-                        Size = UDim2.new(1, 0, 0, 33),
+                        Size = UDim2.new(1, 0, 0, 26),
                         LayoutOrder = elementIndex,
                         Parent = ElementsContainer
                     })
+                    AddCorner(Row, 6)
 
                     local Label = CreateInstance("TextLabel", {
                         Name = "Label",
                         Text = labelText,
                         Font = Enum.Font.GothamMedium,
-                        TextSize = 12,
+                        TextSize = 11,
                         TextColor3 = Theme.TextDim,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         BackgroundTransparency = 1,
                         Size = UDim2.new(0.5, 0, 1, 0),
-                        Position = UDim2.new(0, 14, 0, 0),
+                        Position = UDim2.new(0, 12, 0, 0),
                         Parent = Row
                     })
 
@@ -1557,12 +1751,12 @@ function PainUI:CreateWindow(options)
                         Name = "KeyBtn",
                         Text = (currentKey ~= Enum.KeyCode.Unknown) and currentKey.Name or "None",
                         Font = Enum.Font.GothamMedium,
-                        TextSize = 11,
+                        TextSize = 10,
                         TextColor3 = Theme.Text,
                         BackgroundColor3 = Theme.InputBg,
                         AutoButtonColor = false,
                         Size = UDim2.new(0, 65, 0, 22),
-                        Position = UDim2.new(1, -14, 0.5, 0),
+                        Position = UDim2.new(1, -12, 0.5, 0),
                         AnchorPoint = Vector2.new(1, 0.5),
                         Parent = Row
                     })
@@ -1606,6 +1800,7 @@ function PainUI:CreateWindow(options)
 
                     table.insert(Section.Elements, keybindObj)
                     table.insert(Window.AllElements, keybindObj)
+                    table.insert(Window.SearchIndex, {Name = labelText, Tab = Tab, Page = Page, Section = Section, Row = Row})
                     return keybindObj
                 end
 
@@ -1616,21 +1811,22 @@ function PainUI:CreateWindow(options)
                     local Row = CreateInstance("Frame", {
                         Name = "Button_" .. labelText,
                         BackgroundTransparency = 1,
-                        Size = UDim2.new(1, 0, 0, 34),
+                        Size = UDim2.new(1, 0, 0, 32),
                         LayoutOrder = elementIndex,
                         Parent = ElementsContainer
                     })
+                    AddCorner(Row, 6)
 
                     local Btn = CreateInstance("TextButton", {
                         Name = "Btn",
                         Text = labelText,
                         Font = Enum.Font.GothamMedium,
-                        TextSize = 12,
+                        TextSize = 11,
                         TextColor3 = Theme.Text,
                         BackgroundColor3 = Theme.InputBg,
                         AutoButtonColor = false,
-                        Size = UDim2.new(1, -28, 0, 26),
-                        Position = UDim2.new(0, 14, 0.5, 0),
+                        Size = UDim2.new(1, -24, 0, 24),
+                        Position = UDim2.new(0, 12, 0.5, 0),
                         AnchorPoint = Vector2.new(0, 0.5),
                         ClipsDescendants = true,
                         Parent = Row
@@ -1663,6 +1859,7 @@ function PainUI:CreateWindow(options)
 
                     table.insert(Section.Elements, btnObj)
                     table.insert(Window.AllElements, btnObj)
+                    table.insert(Window.SearchIndex, {Name = labelText, Tab = Tab, Page = Page, Section = Section, Row = Row})
                     return btnObj
                 end
 
@@ -1673,21 +1870,22 @@ function PainUI:CreateWindow(options)
                     local Row = CreateInstance("Frame", {
                         Name = "Input_" .. labelText,
                         BackgroundTransparency = 1,
-                        Size = UDim2.new(1, 0, 0, 33),
+                        Size = UDim2.new(1, 0, 0, 26),
                         LayoutOrder = elementIndex,
                         Parent = ElementsContainer
                     })
+                    AddCorner(Row, 6)
 
                     local Label = CreateInstance("TextLabel", {
                         Name = "Label",
                         Text = labelText,
                         Font = Enum.Font.GothamMedium,
-                        TextSize = 12,
+                        TextSize = 11,
                         TextColor3 = Theme.TextDim,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         BackgroundTransparency = 1,
                         Size = UDim2.new(0.45, 0, 1, 0),
-                        Position = UDim2.new(0, 14, 0, 0),
+                        Position = UDim2.new(0, 12, 0, 0),
                         Parent = Row
                     })
 
@@ -1701,7 +1899,7 @@ function PainUI:CreateWindow(options)
                         TextColor3 = Theme.Text,
                         BackgroundColor3 = Theme.InputBg,
                         Size = UDim2.new(0, 95, 0, 22),
-                        Position = UDim2.new(1, -14, 0.5, 0),
+                        Position = UDim2.new(1, -12, 0.5, 0),
                         AnchorPoint = Vector2.new(1, 0.5),
                         ClearTextOnFocus = false,
                         Parent = Row
@@ -1730,6 +1928,7 @@ function PainUI:CreateWindow(options)
 
                     table.insert(Section.Elements, inputObj)
                     table.insert(Window.AllElements, inputObj)
+                    table.insert(Window.SearchIndex, {Name = labelText, Tab = Tab, Page = Page, Section = Section, Row = Row})
                     return inputObj
                 end
 
@@ -1742,22 +1941,23 @@ function PainUI:CreateWindow(options)
                     local Row = CreateInstance("Frame", {
                         Name = "ColorPicker_" .. labelText,
                         BackgroundTransparency = 1,
-                        Size = UDim2.new(1, 0, 0, 33),
+                        Size = UDim2.new(1, 0, 0, 26),
                         LayoutOrder = elementIndex,
                         ClipsDescendants = false,
                         Parent = ElementsContainer
                     })
+                    AddCorner(Row, 6)
 
                     local Label = CreateInstance("TextLabel", {
                         Name = "Label",
                         Text = labelText,
                         Font = Enum.Font.GothamMedium,
-                        TextSize = 12,
+                        TextSize = 11,
                         TextColor3 = Theme.TextDim,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         BackgroundTransparency = 1,
-                        Size = UDim2.new(0.5, 0, 0, 33),
-                        Position = UDim2.new(0, 14, 0, 0),
+                        Size = UDim2.new(0.5, 0, 0, 30),
+                        Position = UDim2.new(0, 12, 0, 0),
                         Parent = Row
                     })
 
@@ -1766,7 +1966,7 @@ function PainUI:CreateWindow(options)
                         Text = "",
                         BackgroundColor3 = currentColor,
                         Size = UDim2.new(0, 30, 0, 18),
-                        Position = UDim2.new(1, -14, 0, 7),
+                        Position = UDim2.new(1, -12, 0, 6),
                         AnchorPoint = Vector2.new(1, 0),
                         AutoButtonColor = false,
                         Parent = Row
@@ -1778,7 +1978,7 @@ function PainUI:CreateWindow(options)
                         Name = "Palette",
                         BackgroundColor3 = Theme.DropdownBg,
                         Size = UDim2.new(0, 136, 0, 0),
-                        Position = UDim2.new(1, -14, 0, 30),
+                        Position = UDim2.new(1, -12, 0, 28),
                         AnchorPoint = Vector2.new(1, 0),
                         ClipsDescendants = true,
                         Visible = false,
@@ -1831,11 +2031,11 @@ function PainUI:CreateWindow(options)
                         opened = not opened
                         if opened then
                             PaletteFrame.Visible = true
-                            Tween(Row, AnimConfig.Fast, {Size = UDim2.new(1, 0, 0, 96)})
+                            Tween(Row, AnimConfig.Fast, {Size = UDim2.new(1, 0, 0, 94)})
                             Tween(PaletteFrame, AnimConfig.Medium, {Size = UDim2.new(0, 136, 0, 60)})
                         else
                             local t = Tween(PaletteFrame, AnimConfig.Fast, {Size = UDim2.new(0, 136, 0, 0)})
-                            Tween(Row, AnimConfig.Fast, {Size = UDim2.new(1, 0, 0, 33)})
+                            Tween(Row, AnimConfig.Fast, {Size = UDim2.new(1, 0, 0, 26)})
                             t.Completed:Connect(function()
                                 if not opened then PaletteFrame.Visible = false end
                             end)
@@ -1855,6 +2055,7 @@ function PainUI:CreateWindow(options)
 
                     table.insert(Section.Elements, cpObj)
                     table.insert(Window.AllElements, cpObj)
+                    table.insert(Window.SearchIndex, {Name = labelText, Tab = Tab, Page = Page, Section = Section, Row = Row})
                     return cpObj
                 end
 
@@ -1865,8 +2066,8 @@ function PainUI:CreateWindow(options)
                         Name = "Paragraph_" .. pTitle,
                         BackgroundColor3 = Theme.InputBg,
                         BackgroundTransparency = 0.5,
-                        Size = UDim2.new(1, -28, 0, 0),
-                        Position = UDim2.new(0, 14, 0, 0),
+                        Size = UDim2.new(1, -24, 0, 0),
+                        Position = UDim2.new(0, 12, 0, 0),
                         AutomaticSize = Enum.AutomaticSize.Y,
                         LayoutOrder = elementIndex,
                         Parent = ElementsContainer
@@ -1882,7 +2083,7 @@ function PainUI:CreateWindow(options)
                         Parent = Row
                     })
 
-                    local TitleLabel = CreateInstance("TextLabel", {
+                    local PTitleLabel = CreateInstance("TextLabel", {
                         Name = "PTitle",
                         Text = pTitle,
                         Font = Enum.Font.GothamBold,
@@ -1912,7 +2113,7 @@ function PainUI:CreateWindow(options)
 
                     local paraObj = {
                         Set = function(_, newTitle, newContent)
-                            if newTitle then TitleLabel.Text = newTitle end
+                            if newTitle then PTitleLabel.Text = newTitle end
                             if newContent then ContentLabel.Text = newContent end
                         end,
                         Row = Row,
@@ -1921,6 +2122,7 @@ function PainUI:CreateWindow(options)
 
                     table.insert(Section.Elements, paraObj)
                     table.insert(Window.AllElements, paraObj)
+                    table.insert(Window.SearchIndex, {Name = pTitle, Tab = Tab, Page = Page, Section = Section, Row = Row})
                     return paraObj
                 end
 
@@ -1934,6 +2136,7 @@ function PainUI:CreateWindow(options)
                         LayoutOrder = elementIndex,
                         Parent = ElementsContainer
                     })
+                    AddCorner(Row, 6)
 
                     local Label = CreateInstance("TextLabel", {
                         Name = "Label",
@@ -1943,8 +2146,8 @@ function PainUI:CreateWindow(options)
                         TextColor3 = Theme.TextDark,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         BackgroundTransparency = 1,
-                        Size = UDim2.new(1, -28, 1, 0),
-                        Position = UDim2.new(0, 14, 0, 0),
+                        Size = UDim2.new(1, -24, 1, 0),
+                        Position = UDim2.new(0, 12, 0, 0),
                         Parent = Row
                     })
 
@@ -1956,6 +2159,7 @@ function PainUI:CreateWindow(options)
 
                     table.insert(Section.Elements, labelObj)
                     table.insert(Window.AllElements, labelObj)
+                    table.insert(Window.SearchIndex, {Name = text, Tab = Tab, Page = Page, Section = Section, Row = Row})
                     return labelObj
                 end
 
@@ -1966,8 +2170,8 @@ function PainUI:CreateWindow(options)
                         Name = "Sep",
                         BackgroundColor3 = Theme.Separator,
                         BackgroundTransparency = 0.5,
-                        Size = UDim2.new(1, -28, 0, 1),
-                        Position = UDim2.new(0, 14, 0, 0),
+                        Size = UDim2.new(1, -24, 0, 1),
+                        Position = UDim2.new(0, 12, 0, 0),
                         LayoutOrder = elementIndex,
                         BorderSizePixel = 0,
                         Parent = ElementsContainer
