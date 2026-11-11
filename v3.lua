@@ -63,10 +63,10 @@ local Theme = {
 }
 
 local IconMap = {
-    aimbot = "rbxassetid://10709790387",
-    crosshair = "rbxassetid://10709790387",
-    target = "rbxassetid://10709791523",
-    fov = "rbxassetid://10709791523",
+    aimbot = "rbxassetid://10709818534",
+    crosshair = "rbxassetid://10709818534",
+    target = "rbxassetid://10734977012",
+    fov = "rbxassetid://10734977012",
     visuals = "rbxassetid://10723346959",
     eye = "rbxassetid://10723346959",
     chams = "rbxassetid://10723346959",
@@ -495,8 +495,8 @@ function PainUI:CreateWindow(options)
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
         ClipsDescendants = true,
         Visible = false,
-        ZIndex = 50,
-        Parent = TopBar
+        ZIndex = 500,
+        Parent = MainFrame
     })
     AddCorner(SearchDropdown, 8)
     AddStroke(SearchDropdown, Theme.CardBorder, 1)
@@ -540,7 +540,7 @@ function PainUI:CreateWindow(options)
                 TextColor3 = Theme.TextDark,
                 BackgroundTransparency = 1,
                 Size = UDim2.new(1, 0, 0, 28),
-                ZIndex = 51,
+                ZIndex = 501,
                 Parent = SearchDropdown
             })
             Tween(SearchDropdown, AnimConfig.Fast, {Size = UDim2.new(0, 240, 0, 40)})
@@ -559,7 +559,7 @@ function PainUI:CreateWindow(options)
                 Size = UDim2.new(1, 0, 0, 26),
                 AutoButtonColor = false,
                 Text = "",
-                ZIndex = 51,
+                ZIndex = 501,
                 LayoutOrder = i,
                 Parent = SearchDropdown
             })
@@ -576,7 +576,7 @@ function PainUI:CreateWindow(options)
                 Size = UDim2.new(1, -70, 1, 0),
                 Position = UDim2.new(0, 8, 0, 0),
                 Active = false,
-                ZIndex = 52,
+                ZIndex = 502,
                 Parent = ItemBtn
             })
 
@@ -592,7 +592,7 @@ function PainUI:CreateWindow(options)
                 Position = UDim2.new(1, -8, 0, 0),
                 AnchorPoint = Vector2.new(1, 0),
                 Active = false,
-                ZIndex = 52,
+                ZIndex = 502,
                 Parent = ItemBtn
             })
 
@@ -662,7 +662,29 @@ function PainUI:CreateWindow(options)
         Size = UDim2.new(0, 52, 1, -48),
         Position = UDim2.new(0, 0, 0, 48),
         BorderSizePixel = 0,
+        ZIndex = 2,
         Parent = MainFrame
+    })
+    AddCorner(Sidebar, 12)
+
+    CreateInstance("Frame", {
+        Name = "SidebarTopFix",
+        BackgroundColor3 = Theme.Sidebar,
+        Size = UDim2.new(1, 0, 0, 14),
+        Position = UDim2.new(0, 0, 0, 0),
+        BorderSizePixel = 0,
+        ZIndex = 2,
+        Parent = Sidebar
+    })
+
+    CreateInstance("Frame", {
+        Name = "SidebarRightFix",
+        BackgroundColor3 = Theme.Sidebar,
+        Size = UDim2.new(0, 14, 1, -14),
+        Position = UDim2.new(1, -14, 0, 0),
+        BorderSizePixel = 0,
+        ZIndex = 2,
+        Parent = Sidebar
     })
 
     local SidebarIndicator = CreateInstance("Frame", {
@@ -933,12 +955,13 @@ function PainUI:CreateWindow(options)
                 ClipsDescendants = true,
                 Parent = ContentArea
             })
-            AddPadding(PageFrame, 6, 8, 10, 10)
+            AddPadding(PageFrame, 6, 8, 0, 0)
 
             local ColumnsContainer = CreateInstance("Frame", {
                 Name = "Columns",
                 BackgroundTransparency = 1,
-                Size = UDim2.new(1, 0, 0, 0),
+                Size = UDim2.new(1, -28, 0, 0),
+                Position = UDim2.new(0, 14, 0, 6),
                 AutomaticSize = Enum.AutomaticSize.Y,
                 Parent = PageFrame
             })
@@ -946,7 +969,7 @@ function PainUI:CreateWindow(options)
             local LeftColumn = CreateInstance("Frame", {
                 Name = "Left",
                 BackgroundTransparency = 1,
-                Size = UDim2.new(0.5, -6, 0, 0),
+                Size = UDim2.new(0.5, -8, 0, 0),
                 Position = UDim2.new(0, 0, 0, 0),
                 AutomaticSize = Enum.AutomaticSize.Y,
                 Parent = ColumnsContainer
@@ -954,7 +977,7 @@ function PainUI:CreateWindow(options)
 
             CreateInstance("UIListLayout", {
                 FillDirection = Enum.FillDirection.Vertical,
-                Padding = UDim.new(0, 6),
+                Padding = UDim.new(0, 8),
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 Parent = LeftColumn
             })
@@ -962,15 +985,15 @@ function PainUI:CreateWindow(options)
             local RightColumn = CreateInstance("Frame", {
                 Name = "Right",
                 BackgroundTransparency = 1,
-                Size = UDim2.new(0.5, -6, 0, 0),
-                Position = UDim2.new(0.5, 6, 0, 0),
+                Size = UDim2.new(0.5, -8, 0, 0),
+                Position = UDim2.new(0.5, 8, 0, 0),
                 AutomaticSize = Enum.AutomaticSize.Y,
                 Parent = ColumnsContainer
             })
 
             CreateInstance("UIListLayout", {
                 FillDirection = Enum.FillDirection.Vertical,
-                Padding = UDim.new(0, 6),
+                Padding = UDim.new(0, 8),
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 Parent = RightColumn
             })
